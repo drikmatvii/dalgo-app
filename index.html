@@ -21,57 +21,68 @@
     --amber:#D97706; --amber-bg:#FEF3E2;
     --red:#DC2626; --red-bg:#FDEAEA;
     --gray:#6B7280; --gray-bg:#F0F1F3;
-    --radius:10px;
+    --radius:12px;
+    --shadow-sm:0 1px 2px rgba(16,32,20,.05);
+    --shadow-card:0 1px 2px rgba(16,32,20,.04), 0 6px 16px rgba(16,32,20,.05);
+    --shadow-lift:0 10px 24px rgba(16,32,20,.09);
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   body{
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    background:var(--bg); color:var(--text); font-size:14px;
+    background:var(--bg); color:var(--text); font-size:14px; -webkit-font-smoothing:antialiased;
   }
   .layout{display:flex; min-height:100vh;}
   .sidebar{
-    width:230px; background:var(--navy); border-right:1px solid var(--navy);
+    width:230px; background:linear-gradient(185deg,#1E2A40 0%, #151D2C 100%); border-right:1px solid var(--navy);
     padding:20px 12px; flex-shrink:0; position:sticky; top:0; height:100vh;
+    box-shadow:2px 0 12px rgba(0,0,0,.12); z-index:2;
   }
   .logo{padding:4px 8px 24px; border-bottom:1px solid rgba(255,255,255,0.08); margin-bottom:14px;}
   .logo img{display:block; height:34px; width:auto;}
   .nav-item{
-    display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px;
+    display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:9px;
     color:#9AA5B8; font-size:14px; cursor:pointer; margin-bottom:2px; font-weight:500;
+    border-left:3px solid transparent; transition:background .15s ease, color .15s ease;
   }
   .nav-item:hover{background:rgba(255,255,255,0.06); color:#E5E9F0;}
-  .nav-item.active{background:rgba(92,138,38,0.28); color:#9FD35C;}
+  .nav-item.active{background:rgba(92,138,38,0.24); color:#A9E06B; border-left:3px solid var(--green); box-shadow:inset 0 0 0 1px rgba(159,211,92,0.08);}
   .nav-icon{width:18px; height:18px; display:flex; align-items:center; justify-content:center; font-size:15px;}
   .main{flex:1; padding:28px 36px; max-width:1200px;}
-  .page-title{font-size:22px; font-weight:600; margin-bottom:4px;}
+  .page-title{font-size:22px; font-weight:700; margin-bottom:4px; letter-spacing:-.01em;}
   .page-sub{color:var(--text-2); font-size:13px; margin-bottom:24px;}
   .section{display:none;}
   .section.active{display:block;}
 
   .metric-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-bottom:24px;}
-  .metric-card{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px;}
-  .metric-label{font-size:12.5px; color:var(--text-2); margin-bottom:8px;}
-  .metric-value{font-size:26px; font-weight:600;}
+  .metric-card{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; box-shadow:var(--shadow-card); transition:transform .15s ease, box-shadow .15s ease;}
+  .metric-card:hover{transform:translateY(-2px); box-shadow:var(--shadow-lift);}
+  .metric-label{font-size:12px; color:var(--text-2); margin-bottom:8px; text-transform:uppercase; letter-spacing:.04em; font-weight:600;}
+  .metric-value{font-size:27px; font-weight:700; letter-spacing:-.01em;}
   .metric-value.blue{color:var(--accent);}
   .metric-value.amber{color:var(--amber);}
   .metric-value.green{color:var(--green);}
   .metric-value.gray{color:var(--text);}
 
-  .card{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:20px; margin-bottom:20px;}
-  .card-title{font-size:15px; font-weight:600; margin-bottom:14px;}
+  .card{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:20px; margin-bottom:20px; box-shadow:var(--shadow-card);}
+  .card-title{font-size:15px; font-weight:700; margin-bottom:14px; letter-spacing:-.005em;}
 
   table{width:100%; border-collapse:collapse; font-size:13.5px;}
-  th{text-align:left; color:var(--text-2); font-weight:500; font-size:12.5px; padding:0 12px 10px; border-bottom:1px solid var(--border); white-space:nowrap;}
+  th{text-align:left; color:var(--text-2); font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:.03em; padding:12px 12px; background:var(--bg); border-bottom:1px solid var(--border); white-space:nowrap;}
+  tr > th:first-child{border-top-left-radius:var(--radius);}
+  tr > th:last-child{border-top-right-radius:var(--radius);}
   td{padding:12px; border-bottom:1px solid var(--border); vertical-align:middle;}
   tr:last-child td{border-bottom:none;}
-  tr.rowhover:hover{background:#FAFBFC; cursor:pointer;}
+  tr.rowhover{transition:background .12s ease;}
+  tr.rowhover:hover{background:var(--accent-bg); cursor:pointer;}
 
-  .badge{display:inline-block; padding:4px 10px; border-radius:20px; font-size:12px; font-weight:500; white-space:nowrap;}
+  .badge{display:inline-block; padding:4px 11px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap;}
   .badge.new{background:var(--gray-bg); color:var(--gray);}
   .badge.production{background:var(--accent-bg); color:var(--accent);}
   .badge.ready{background:var(--green-dark-bg); color:var(--green-dark);}
   .badge.shipped{background:var(--navy-bg); color:var(--navy-2);}
   .badge.waiting{background:var(--amber-bg); color:var(--amber);}
+
+  .company-chip{display:inline-block; padding:4px 11px; border-radius:20px; font-size:12.5px; font-weight:700; background:var(--green-dark-bg); color:var(--green-dark); letter-spacing:-.005em;}
 
   .progress-wrap{display:flex; align-items:center; gap:8px; min-width:110px;}
   .progress-bar{flex:1; height:6px; background:var(--gray-bg); border-radius:6px; overflow:hidden;}
@@ -84,15 +95,16 @@
   input[type=range]{width:120px;}
   .stock-edit{display:flex; align-items:center; gap:6px;}
   .btn{
-    border:1px solid var(--border-strong); background:var(--card); border-radius:7px; padding:6px 12px;
-    font-size:12.5px; cursor:pointer; color:var(--text);
+    border:1px solid var(--border-strong); background:var(--card); border-radius:8px; padding:6px 13px;
+    font-size:12.5px; cursor:pointer; color:var(--text); font-weight:500; transition:background .15s ease, box-shadow .15s ease, border-color .15s ease;
   }
-  .btn:hover{background:var(--gray-bg);}
-  .btn.primary{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .btn:hover{background:var(--gray-bg); border-color:var(--text-3);}
+  .btn.primary{background:var(--accent); border-color:var(--accent); color:#fff; box-shadow:0 2px 8px rgba(92,138,38,.28);}
+  .btn.primary:hover{background:var(--green-dark); border-color:var(--green-dark); box-shadow:0 3px 10px rgba(92,138,38,.36);}
 
   .avatar{width:24px; height:24px; border-radius:50%; background:var(--accent-bg); color:var(--accent); font-size:11px; font-weight:600; display:flex; align-items:center; justify-content:center;}
 
-  .risk-badge{display:inline-block; padding:3px 9px; border-radius:20px; font-size:11.5px; font-weight:500; white-space:nowrap;}
+  .risk-badge{display:inline-block; padding:3px 10px; border-radius:20px; font-size:11.5px; font-weight:600; white-space:nowrap;}
   .risk-badge.critical{background:var(--red-bg); color:var(--red);}
   .risk-badge.warning{background:var(--amber-bg); color:var(--amber);}
   .risk-badge.safe{background:var(--green-dark-bg); color:var(--green-dark);}
@@ -122,14 +134,30 @@
   .chart-bar-fill{position:absolute; bottom:0; left:0; right:0; background:var(--accent); border-radius:6px 6px 0 0;}
   .chart-label{font-size:11.5px; color:var(--text-2);}
 
-  .modal-overlay{display:none; position:fixed; inset:0; background:rgba(17,24,39,0.45); align-items:center; justify-content:center; z-index:100;}
+  .modal-overlay{display:none; position:fixed; inset:0; background:rgba(15,20,16,0.55); backdrop-filter:blur(2px); align-items:center; justify-content:center; z-index:100;}
   .modal-overlay.open{display:flex;}
-  .modal-box{background:var(--card); border-radius:12px; width:760px; max-width:92vw; max-height:82vh; display:flex; flex-direction:column; overflow:hidden;}
+  .modal-box{background:var(--card); border-radius:14px; width:760px; max-width:92vw; max-height:82vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 50px rgba(16,32,20,.25);}
   .modal-header{display:flex; justify-content:space-between; align-items:flex-start; padding:20px 24px; border-bottom:1px solid var(--border);}
-  .modal-title{font-size:17px; font-weight:600;}
+  .modal-title{font-size:17px; font-weight:700; letter-spacing:-.01em;}
   .modal-sub{font-size:12.5px; color:var(--text-2); margin-top:4px;}
   .modal-close{border:none; background:none; font-size:22px; cursor:pointer; color:var(--text-2); line-height:1;}
   .modal-body{padding:16px 24px; overflow-y:auto;}
+
+  .part-switcher{display:flex; gap:8px; margin-bottom:14px;}
+  .part-btn{border:1px solid var(--border-strong); background:var(--card); color:var(--text-2); border-radius:8px; padding:8px 16px; font-size:13px; font-weight:600; cursor:pointer; transition:background .15s ease, box-shadow .15s ease, border-color .15s ease;}
+  .part-btn:hover{background:var(--gray-bg);}
+  .part-btn.active{background:var(--green); border-color:var(--green); color:#fff; box-shadow:0 2px 8px rgba(92,138,38,.3);}
+
+  .login-overlay{position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:200;}
+  .login-box{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-card); padding:36px 32px; width:100%; max-width:340px;}
+  .login-title{font-size:19px; font-weight:800; color:var(--text); margin-bottom:4px; letter-spacing:-.01em;}
+  .login-sub{font-size:12.5px; color:var(--text-2); margin-bottom:22px;}
+  .login-box input{width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--border-strong); border-radius:8px; font-size:14px; margin-bottom:10px; font-family:inherit;}
+  .login-error{color:var(--red); font-size:12.5px; min-height:16px; margin-bottom:6px;}
+  .sidebar-footer{padding:14px 12px 4px; margin-top:14px; border-top:1px solid rgba(255,255,255,0.08);}
+  .sidebar-footer .user-email{font-size:11px; color:rgba(255,255,255,0.5); margin-bottom:8px; word-break:break-all;}
+  .sidebar-footer .btn{width:100%; background:rgba(255,255,255,0.06); border-color:rgba(255,255,255,0.14); color:#C9D0DC;}
+  .sidebar-footer .btn:hover{background:rgba(255,255,255,0.12);}
 
   @media (max-width:820px){
     html, body{overflow-x:hidden;}
@@ -160,7 +188,7 @@
     tr{display:block; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:8px;}
     .card table tr, .modal-body table tr{margin:0 0 8px;}
     .card > table{background:transparent;}
-    table tr:first-child{display:none;}
+    table > tr:first-child{display:none;}
     td{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:5px 0; border-bottom:none; font-size:13px; white-space:normal;}
     td:before{content:attr(data-label); color:var(--text-2); font-size:11px; font-weight:500; flex-shrink:0; padding-right:8px;}
     tr td:first-child{display:block; font-weight:600; font-size:14px; color:var(--text); padding:0 0 8px; margin-bottom:6px; border-bottom:1px solid var(--border);}
@@ -177,7 +205,19 @@
 </style>
 </head>
 <body>
-<div class="layout">
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div class="login-title">ДАЛГО · ERP</div>
+    <div class="login-sub">Увійдіть, щоб отримати доступ до системи</div>
+    <form id="loginForm">
+      <input type="email" id="loginEmail" placeholder="Email" required autocomplete="username">
+      <input type="password" id="loginPassword" placeholder="Пароль" required autocomplete="current-password">
+      <div class="login-error" id="loginError"></div>
+      <button type="submit" class="btn primary" id="loginBtn" style="width:100%;">Увійти</button>
+    </form>
+  </div>
+</div>
+<div class="layout" id="appLayout" style="display:none;">
   <div class="sidebar">
     <div class="logo"><img src="data:image/png;base64,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" alt="ДАЛГО"></div>
     <div class="nav-item active" data-section="dashboard"><span class="nav-icon">▦</span><span class="nav-label" data-short="Главная">Главная</span></div>
@@ -185,6 +225,10 @@
     <div class="nav-item" data-section="warehouse"><span class="nav-icon">▥</span><span class="nav-label" data-short="Склад">Склад</span></div>
     <div class="nav-item" data-section="analysis"><span class="nav-icon">◈</span><span class="nav-label" data-short="Анализ">Анализ и рекомендации</span></div>
     <div class="nav-item" data-section="shipping"><span class="nav-icon">▧</span><span class="nav-label" data-short="Отгрузки">Отгрузки</span></div>
+    <div class="sidebar-footer">
+      <div class="user-email" id="currentUserEmail"></div>
+      <button class="btn" id="logoutBtn">Вийти</button>
+    </div>
   </div>
 
   <div class="main">
@@ -193,13 +237,7 @@
       <div class="page-title">Главная</div>
       <div class="page-sub">Обзор состояния производства — 27 июля 2026</div>
 
-      <div class="metric-grid">
-        <div class="metric-card"><div class="metric-label">Активные заказы</div><div class="metric-value gray">12</div></div>
-        <div class="metric-card"><div class="metric-label">В производстве</div><div class="metric-value blue">5</div></div>
-        <div class="metric-card"><div class="metric-label">Готовые</div><div class="metric-value green">3</div></div>
-        <div class="metric-card"><div class="metric-label">Ожидают отгрузку</div><div class="metric-value amber">2</div></div>
-        <div class="metric-card"><div class="metric-label">Всего на складе</div><div class="metric-value gray">1 240 шт</div></div>
-      </div>
+      <div class="metric-grid" id="dashboardStats"></div>
 
       <div class="card">
         <div class="card-title">Динамика заказов за неделю</div>
@@ -216,11 +254,7 @@
 
       <div class="card">
         <div class="card-title">Сегодня</div>
-        <div class="today-list">
-          + 2 новых заказа (Восторг, Нова Пошта Маркет)<br>
-          + 1 заказ переведён в производство (№1040)<br>
-          + 1 отгрузка выполнена (Сільпо)
-        </div>
+        <div class="today-list" id="todayList"></div>
       </div>
     </div>
 
@@ -229,7 +263,7 @@
       <div class="page-sub">Все заказы компании</div>
       <div class="card" style="padding:0;">
         <table>
-          <tr><th>№ заказа</th><th>Клиент</th><th>Дата создания</th><th>Срок</th><th>Статус</th><th>Готовность</th></tr>
+          <tr><th>Заказ</th><th>Адрес</th><th>Дата создания</th><th>Срок</th><th>Статус</th></tr>
           <tbody id="ordersRows"></tbody>
         </table>
       </div>
@@ -238,9 +272,10 @@
     <div class="section" id="warehouse">
       <div class="page-title">Склад</div>
       <div class="page-sub">Остатки готовой продукции</div>
+      <div class="part-switcher" id="warehouseFilter" style="margin-bottom:14px;"></div>
       <div class="card" style="padding:0;">
         <table>
-          <tr><th>Название</th><th>Артикул</th><th>Категория</th><th>На складе</th><th>Резерв</th><th>Свободно</th><th></th></tr>
+          <tr><th>Название</th><th>Артикул</th><th>Категория</th><th>На складе</th><th>В заказах</th><th>Остаток</th><th></th></tr>
           <tbody id="warehouseRows"></tbody>
         </table>
       </div>
@@ -252,11 +287,9 @@
 
       <div class="metric-grid" id="analysisStats"></div>
 
-      <div class="card" id="analysisInsight"></div>
-
       <div class="card" style="padding:0;">
         <table>
-          <tr><th>Товар</th><th>Категория</th><th>Свободно</th><th>На основе заказа</th><th>Останется после</th><th>Статус</th><th>Рекомендация</th></tr>
+          <tr><th>Товар</th><th>Категория</th><th>На складе</th><th>Нужно по заказам</th><th>Останется после</th><th>Статус</th><th>Рекомендация</th></tr>
           <tbody id="analysisRows"></tbody>
         </table>
       </div>
@@ -264,14 +297,11 @@
 
     <div class="section" id="shipping">
       <div class="page-title">Отгрузки</div>
-      <div class="page-sub">Готовые к отправке и отгруженные заказы</div>
+      <div class="page-sub">Все заказы и их статус готовности к отгрузке</div>
       <div class="card" style="padding:0;">
         <table>
-          <tr><th>Клиент</th><th>Дата отправки</th><th>Продукция</th><th>Статус</th></tr>
-          <tr class="rowhover"><td>АТБ-МАРКЕТ (м. Бровари)</td><td data-label="Дата отправки">11.03.2026</td><td data-label="Продукция">52 позиции — накладна №17 (на суму 1 222 434,73 грн)</td><td data-label="Статус"><span class="badge shipped">Отгружено</span></td></tr>
-          <tr class="rowhover"><td>Ашан</td><td data-label="Дата отправки">29.07.2026</td><td data-label="Продукция">Стеллажи ×40, Полки ×120</td><td data-label="Статус"><span class="badge waiting">Готово к отправке</span></td></tr>
-          <tr class="rowhover"><td>Сільпо</td><td data-label="Дата отправки">27.07.2026</td><td data-label="Продукция">Стойки ×10</td><td data-label="Статус"><span class="badge shipped">Отгружено</span></td></tr>
-          <tr class="rowhover"><td>Метро</td><td data-label="Дата отправки">05.08.2026</td><td data-label="Продукция">Корзины ×200</td><td data-label="Статус"><span class="badge new">Ожидает готовности</span></td></tr>
+          <tr><th>Заказ</th><th>Адрес</th><th>Срок</th><th>Продукция</th><th>Статус</th></tr>
+          <tbody id="shippingRows"></tbody>
         </table>
       </div>
     </div>
@@ -286,17 +316,119 @@
         <div class="modal-title" id="modalOrderTitle"></div>
         <div class="modal-sub" id="modalOrderSub"></div>
       </div>
-      <button class="modal-close" id="modalCloseBtn">&times;</button>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button class="btn" id="modalExportBtn" title="Скачать Excel для печати">⭳ Excel</button>
+        <button class="modal-close" id="modalCloseBtn">&times;</button>
+      </div>
     </div>
     <div class="modal-body">
+      <div class="part-switcher" id="modalPartSwitcher"></div>
       <table>
-        <tr><th>Товар</th><th>В заказе</th><th>На складе</th><th>Резерв</th><th>Свободно</th></tr>
+        <tr><th>Товар</th><th>В заказе</th><th>На складе</th><th>В других заказах</th><th>Останется всего</th></tr>
         <tbody id="modalItemsBody"></tbody>
       </table>
       <div class="modal-report" id="modalReport"></div>
     </div>
   </div>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAY_VTolB66lI6udNhNl4r_UmS2TW-YOxU",
+    authDomain: "dalgo-erp.firebaseapp.com",
+    projectId: "dalgo-erp",
+    storageBucket: "dalgo-erp.firebasestorage.app",
+    messagingSenderId: "47534791824",
+    appId: "1:47534791824:web:f3d7d1d79946fb14b80c15"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  document.getElementById('loginForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass = document.getElementById('loginPassword').value;
+    const errEl = document.getElementById('loginError');
+    const btn = document.getElementById('loginBtn');
+    errEl.textContent = '';
+    btn.disabled = true; btn.textContent = 'Вхід...';
+    auth.signInWithEmailAndPassword(email, pass).catch(function(err){
+      errEl.textContent = 'Не вдалось увійти: перевірте email і пароль.';
+      btn.disabled = false; btn.textContent = 'Увійти';
+    });
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', function(){
+    auth.signOut();
+  });
+
+  let unsubProducts = null, unsubOrders = null;
+
+  auth.onAuthStateChanged(function(user){
+    if(user){
+      document.getElementById('loginOverlay').style.display = 'none';
+      document.getElementById('appLayout').style.display = 'flex';
+      document.getElementById('currentUserEmail').textContent = user.email || '';
+      document.getElementById('loginBtn').disabled = false;
+      document.getElementById('loginBtn').textContent = 'Увійти';
+      document.getElementById('loginForm').reset();
+      startFirestoreSync();
+    } else {
+      document.getElementById('loginOverlay').style.display = 'flex';
+      document.getElementById('appLayout').style.display = 'none';
+      if(unsubProducts){ unsubProducts(); unsubProducts = null; }
+      if(unsubOrders){ unsubOrders(); unsubOrders = null; }
+    }
+  });
+
+  // при каждом входе подтягивает в Firestore те товары/заказы, которых там ещё нет
+  // (уже существующие документы не трогает, чтобы не затирать правки, сделанные прямо в приложении)
+  function syncNewLocalItemsToFirestore(){
+    db.collection('products').get().then(function(snap){
+      const existing = new Set(snap.docs.map(function(d){ return d.id; }));
+      const missing = products.filter(function(p){ return !existing.has(p.code); });
+      if(missing.length){
+        const batch = db.batch();
+        missing.forEach(function(p){ batch.set(db.collection('products').doc(p.code), p); });
+        batch.commit().catch(function(err){ console.error('Не удалось добавить новые товары в базу:', err); });
+      }
+    });
+    db.collection('orders').get().then(function(snap){
+      const existing = new Set(snap.docs.map(function(d){ return d.id; }));
+      const missing = orders.filter(function(o){ return !existing.has(o.id); });
+      if(missing.length){
+        const batch = db.batch();
+        missing.forEach(function(o){ batch.set(db.collection('orders').doc(o.id), o); });
+        batch.commit().catch(function(err){ console.error('Не удалось добавить новые заказы в базу:', err); });
+      }
+    });
+  }
+
+  // ВРЕМЕННО: тестовый пуш для проверки живого обновления (SKU-002, 222 -> 722 шт).
+  // Уберём эту строку в следующем обновлении — обычно уже существующие товары код не трогает.
+  function pushTestUpdate(){
+    db.collection('products').doc('SKU-002').update({stock: 722}).catch(function(err){ console.error('test update failed:', err); });
+  }
+
+  function startFirestoreSync(){
+    pushTestUpdate();
+    syncNewLocalItemsToFirestore();
+    unsubProducts = db.collection('products').onSnapshot(function(snap){
+      products = snap.docs.map(function(d){ return d.data(); }).sort(function(a,b){ return (a.code||'').localeCompare(b.code||''); });
+      if(typeof renderAll === 'function') renderAll();
+    }, function(err){ console.error('Ошибка синхронизации склада:', err); });
+
+    unsubOrders = db.collection('orders').onSnapshot(function(snap){
+      orders = snap.docs.map(function(d){ return d.data(); });
+      if(typeof renderAll === 'function') renderAll();
+    }, function(err){ console.error('Ошибка синхронизации заказов:', err); });
+  }
+</script>
 
 <script>
   document.querySelectorAll('.nav-item').forEach(function(item){
@@ -310,208 +442,666 @@
 </script>
 
 <script>
-  const products = [
-  {name:'Бар\'єр акриловий 1330 (7011)', code:'RN17-01', category:'Бар\'єри', stock:72, reserved:0},
-  {name:'Бар\'єр боковини акриловий 500 (7011)', code:'RN17-02', category:'Бар\'єри', stock:155, reserved:15},
-  {name:'Бар\'єр боковини акриловий 600 (7011)', code:'RN17-03', category:'Бар\'єри', stock:129, reserved:8},
-  {name:'Бар’єр боковий 400 (7011)', code:'RN17-04', category:'Бар\'єри', stock:67, reserved:21},
-  {name:'Бар’єр боковий 500 (7011)', code:'RN17-05', category:'Бар\'єри', stock:294, reserved:11},
-  {name:'Бар’єр боковий 600 (7011)', code:'RN17-06', category:'Бар\'єри', stock:317, reserved:54},
-  {name:'Бар’єр полиці 1000 (7011)', code:'RN17-07', category:'Бар\'єри', stock:31, reserved:0},
-  {name:'Бар’єр полиці 1330 (7011)', code:'RN17-08', category:'Бар\'єри', stock:62, reserved:6},
-  {name:'Бар’єр полиці 660 (7011)', code:'RN17-09', category:'Бар\'єри', stock:134, reserved:32},
-  {name:'Гачок з цінником 300 (7011)', code:'RN17-10', category:'Аксесуари', stock:28, reserved:8},
-  {name:'Короб хлібний 1013х700х508 (7011)', code:'RN17-11', category:'Короби', stock:116, reserved:45},
-  {name:'Кошик сітч 1000 Ral 7011 (розмір 800)', code:'RN17-12', category:'Кошики', stock:294, reserved:53},
-  {name:'Кошик сітч 1250 Ral 7011 (розмір 800)', code:'RN17-13', category:'Кошики', stock:127, reserved:28},
-  {name:'Кошик сітч 1330 Ral 7011 (розмір 800)', code:'RN17-14', category:'Кошики', stock:316, reserved:35},
-  {name:'Кошик сітч 660 Ral 7011 (розмір 800)', code:'RN17-15', category:'Кошики', stock:18, reserved:2},
-  {name:'Кронштейн універсальний 400 (7011)', code:'RN17-16', category:'Кронштейни', stock:231, reserved:43},
-  {name:'Кронштейн універсальний 500 (7011)', code:'RN17-17', category:'Кронштейни', stock:157, reserved:9},
-  {name:'Кронштейн універсальний 600 (7011)', code:'RN17-18', category:'Кронштейни', stock:125, reserved:48},
-  {name:'Нога двостороння 800 1930-100-2 (7011)', code:'RN17-19', category:'Ноги', stock:187, reserved:13},
-  {name:'Нога одностороння 400 1930-100-1 (7011)', code:'RN17-20', category:'Ноги', stock:62, reserved:12},
-  {name:'Нога одностороння 700 1778-100-1 (7011)', code:'RN17-21', category:'Ноги', stock:64, reserved:11},
-  {name:'Нога одностороння 800 1930-100-1 (7011)', code:'RN17-22', category:'Ноги', stock:191, reserved:33},
-  {name:'Підсилення полиці ТЗ - 1000', code:'RN17-23', category:'Підсилення полиці', stock:37, reserved:11},
-  {name:'Підсилення полиці ТЗ - 1250', code:'RN17-24', category:'Підсилення полиці', stock:250, reserved:68},
-  {name:'Підсилення полиці ТЗ - 1330', code:'RN17-25', category:'Підсилення полиці', stock:78, reserved:24},
-  {name:'Підсилення полиці ТЗ - 660', code:'RN17-26', category:'Підсилення полиці', stock:55, reserved:17},
-  {name:'Полиця 200-1000 (7011)', code:'RN17-27', category:'Полиці', stock:165, reserved:46},
-  {name:'Полиця 300-1000 (7011)', code:'RN17-28', category:'Полиці', stock:310, reserved:24},
-  {name:'Полиця 300-1250 (7011)', code:'RN17-29', category:'Полиці', stock:50, reserved:1},
-  {name:'Полиця 300-1330 (7011)', code:'RN17-30', category:'Полиці', stock:131, reserved:49},
-  {name:'Полиця 300-660 (7011)', code:'RN17-31', category:'Полиці', stock:163, reserved:10},
-  {name:'Полиця 400-1330 (7011)', code:'RN17-32', category:'Полиці', stock:134, reserved:6},
-  {name:'Полиця 400-660 (7011)', code:'RN17-33', category:'Полиці', stock:209, reserved:35},
-  {name:'Полиця 500-1000 (7011)', code:'RN17-34', category:'Полиці', stock:247, reserved:81},
-  {name:'Полиця 500-1250 (7011)', code:'RN17-35', category:'Полиці', stock:201, reserved:20},
-  {name:'Полиця 500-1330 (7011)', code:'RN17-36', category:'Полиці', stock:204, reserved:45},
-  {name:'Полиця 500-660 (7011)', code:'RN17-37', category:'Полиці', stock:122, reserved:42},
-  {name:'Полиця 600-1000 (7011)', code:'RN17-38', category:'Полиці', stock:151, reserved:44},
-  {name:'Полиця 600-1250 (7011)', code:'RN17-39', category:'Полиці', stock:51, reserved:19},
-  {name:'Полиця 600-1330 (7011)', code:'RN17-40', category:'Полиці', stock:102, reserved:34},
-  {name:'Полиця 600-660 (7011)', code:'RN17-41', category:'Полиці', stock:140, reserved:10},
-  {name:'Полиця кондитерська 500-1330 7011', code:'RN17-42', category:'Полиці', stock:251, reserved:48},
-  {name:'Полиця кондитерська 600-1330 7011', code:'RN17-43', category:'Полиці', stock:153, reserved:59},
-  {name:'Полиця хлібна 1013х485х407 (7011)', code:'RN17-44', category:'Полиці', stock:300, reserved:28},
-  {name:'Розподілювач кошика 800 (7011)', code:'RN17-45', category:'Аксесуари', stock:181, reserved:7},
-  {name:'Стінка задня 300*1000 (7011)', code:'RN17-46', category:'Стінки задні', stock:132, reserved:52},
-  {name:'Стінка задня 450*1000 (7011)', code:'RN17-47', category:'Стінки задні', stock:31, reserved:12},
-  {name:'Стінка задня 450*1250 (7011)', code:'RN17-48', category:'Стінки задні', stock:176, reserved:51},
-  {name:'Стінка задня 450*1330 (7011)', code:'RN17-49', category:'Стінки задні', stock:152, reserved:4},
-  {name:'Стінка задня 450*660 (7011)', code:'RN17-50', category:'Стінки задні', stock:123, reserved:36},
-  {name:'Стінка задня перфорована 300*1000 (7011)', code:'RN17-51', category:'Стінки задні', stock:176, reserved:27},
-  {name:'Стінка задня перфорована 300*1330 (7011)', code:'RN17-52', category:'Стінки задні', stock:270, reserved:50}
+  let products = [
+  {name:'Бар\'єр акриловий 1330 (7011)', code:'SKU-001', category:'Бар\'єри', stock:685, group:'stellage'},
+  {name:'Бар\'єр боковини акриловий 500 (7011)', code:'SKU-002', category:'Бар\'єри', stock:722, group:'stellage'},
+  {name:'Бар\'єр боковини акриловий 600 (7011)', code:'SKU-003', category:'Бар\'єри', stock:44, group:'stellage'},
+  {name:'Бар’єр боковий 400 (7011)', code:'SKU-004', category:'Бар\'єри', stock:294, group:'stellage'},
+  {name:'Бар’єр боковий 500 (7011)', code:'SKU-005', category:'Бар\'єри', stock:207, group:'stellage'},
+  {name:'Бар’єр боковий 600 (7011)', code:'SKU-006', category:'Бар\'єри', stock:49, group:'stellage'},
+  {name:'Бар’єр полиці 1000 (7011)', code:'SKU-007', category:'Бар\'єри', stock:129, group:'stellage'},
+  {name:'Бар’єр полиці 1250 (7011)', code:'SKU-008', category:'Бар\'єри', stock:64, group:'stellage'},
+  {name:'Бар’єр полиці 1330 (7011)', code:'SKU-009', category:'Бар\'єри', stock:234, group:'stellage'},
+  {name:'Бар’єр полиці 660 (7011)', code:'SKU-010', category:'Бар\'єри', stock:143, group:'stellage'},
+  {name:'Вставка до хлібного кошика 1000 (7011)', code:'SKU-011', category:'Аксесуари', stock:302, group:'stellage'},
+  {name:'Вставка до хлібного кошика 660 (7011)', code:'SKU-012', category:'Аксесуари', stock:50, group:'stellage'},
+  {name:'Гачок з цінником 300 (7011)', code:'SKU-013', category:'Аксесуари', stock:83, group:'stellage'},
+  {name:'Короб хлібний 1013х700х508 (7011)', code:'SKU-014', category:'Короби', stock:342, group:'stellage'},
+  {name:'Короб хлібний 1013х800х508 (7011)', code:'SKU-015', category:'Короби', stock:51, group:'stellage'},
+  {name:'Короб хлібний 660х530х508 (7011)', code:'SKU-016', category:'Короби', stock:319, group:'stellage'},
+  {name:'Короб хлібний 660х700х508 (7011)', code:'SKU-017', category:'Короби', stock:45, group:'stellage'},
+  {name:'Короб хлібний 660х800х508 (7011)', code:'SKU-018', category:'Короби', stock:43, group:'stellage'},
+  {name:'Кошик сітч 1000 Ral 7011 (розмір 300)', code:'SKU-019', category:'Кошики', stock:88, group:'stellage'},
+  {name:'Кошик сітч 1000 Ral 7011 (розмір 700)', code:'SKU-020', category:'Кошики', stock:234, group:'stellage'},
+  {name:'Кошик сітч 1000 Ral 7011 (розмір 800)', code:'SKU-021', category:'Кошики', stock:296, group:'stellage'},
+  {name:'Кошик сітч 1250 Ral 7011 (розмір 800)', code:'SKU-022', category:'Кошики', stock:312, group:'stellage'},
+  {name:'Кошик сітч 1330 Ral 7011 (розмір 700)', code:'SKU-023', category:'Кошики', stock:306, group:'stellage'},
+  {name:'Кошик сітч 1330 Ral 7011 (розмір 800)', code:'SKU-024', category:'Кошики', stock:72, group:'stellage'},
+  {name:'Кошик сітч 660 Ral 7011 (розмір 300)', code:'SKU-025', category:'Кошики', stock:210, group:'stellage'},
+  {name:'Кошик сітч 660 Ral 7011 (розмір 700)', code:'SKU-026', category:'Кошики', stock:300, group:'stellage'},
+  {name:'Кошик сітч 660 Ral 7011 (розмір 800)', code:'SKU-027', category:'Кошики', stock:308, group:'stellage'},
+  {name:'Кронштейн універсальний 300 (7011)', code:'SKU-028', category:'Кронштейни', stock:336, group:'stellage'},
+  {name:'Кронштейн універсальний 400 (7011)', code:'SKU-029', category:'Кронштейни', stock:274, group:'stellage'},
+  {name:'Кронштейн універсальний 500 (7011)', code:'SKU-030', category:'Кронштейни', stock:292, group:'stellage'},
+  {name:'Кронштейн універсальний 600 (7011)', code:'SKU-031', category:'Кронштейни', stock:180, group:'stellage'},
+  {name:'Нога двостороння 500 1930-100-2 (7011)', code:'SKU-032', category:'Ноги', stock:319, group:'stellage'},
+  {name:'Нога двостороння 800 1930-100-2 (7011)', code:'SKU-033', category:'Ноги', stock:205, group:'stellage'},
+  {name:'Нога одностороння 300 1930-100-1 (7011)', code:'SKU-034', category:'Ноги', stock:147, group:'stellage'},
+  {name:'Нога одностороння 500 1930-100-1 (7011)', code:'SKU-035', category:'Ноги', stock:144, group:'stellage'},
+  {name:'Нога одностороння 700 1778-100-1 (7011)', code:'SKU-036', category:'Ноги', stock:314, group:'stellage'},
+  {name:'Нога одностороння 700 1930-100-1 (7011)', code:'SKU-037', category:'Ноги', stock:288, group:'stellage'},
+  {name:'Нога одностороння 800 1930-100-1 (7011)', code:'SKU-038', category:'Ноги', stock:195, group:'stellage'},
+  {name:'Підсилення полиці ТЗ - 1000', code:'SKU-039', category:'Підсилення полиці', stock:167, group:'stellage'},
+  {name:'Підсилення полиці ТЗ - 1250', code:'SKU-040', category:'Підсилення полиці', stock:80, group:'stellage'},
+  {name:'Підсилення полиці ТЗ - 1330', code:'SKU-041', category:'Підсилення полиці', stock:234, group:'stellage'},
+  {name:'Підсилення полиці ТЗ - 660', code:'SKU-042', category:'Підсилення полиці', stock:195, group:'stellage'},
+  {name:'Полиця 200-1000 (7011)', code:'SKU-043', category:'Полиці', stock:270, group:'stellage'},
+  {name:'Полиця 200-1330 (7011)', code:'SKU-044', category:'Полиці', stock:40, group:'stellage'},
+  {name:'Полиця 200-660 (7011)', code:'SKU-045', category:'Полиці', stock:305, group:'stellage'},
+  {name:'Полиця 300-1000 (7011)', code:'SKU-046', category:'Полиці', stock:194, group:'stellage'},
+  {name:'Полиця 300-1250 (7011)', code:'SKU-047', category:'Полиці', stock:324, group:'stellage'},
+  {name:'Полиця 300-1330 (7011)', code:'SKU-048', category:'Полиці', stock:316, group:'stellage'},
+  {name:'Полиця 300-660 (7011)', code:'SKU-049', category:'Полиці', stock:55, group:'stellage'},
+  {name:'Полиця 400-1000 (7011)', code:'SKU-050', category:'Полиці', stock:158, group:'stellage'},
+  {name:'Полиця 400-1250 (7011)', code:'SKU-051', category:'Полиці', stock:53, group:'stellage'},
+  {name:'Полиця 400-1330 (7011)', code:'SKU-052', category:'Полиці', stock:178, group:'stellage'},
+  {name:'Полиця 400-660 (7011)', code:'SKU-053', category:'Полиці', stock:248, group:'stellage'},
+  {name:'Полиця 500-1000 (7011)', code:'SKU-054', category:'Полиці', stock:217, group:'stellage'},
+  {name:'Полиця 500-1250 (7011)', code:'SKU-055', category:'Полиці', stock:197, group:'stellage'},
+  {name:'Полиця 500-1330 (7011)', code:'SKU-056', category:'Полиці', stock:256, group:'stellage'},
+  {name:'Полиця 500-660 (7011)', code:'SKU-057', category:'Полиці', stock:106, group:'stellage'},
+  {name:'Полиця 600-1000 (7011)', code:'SKU-058', category:'Полиці', stock:79, group:'stellage'},
+  {name:'Полиця 600-1250 (7011)', code:'SKU-059', category:'Полиці', stock:50, group:'stellage'},
+  {name:'Полиця 600-1330 (7011)', code:'SKU-060', category:'Полиці', stock:167, group:'stellage'},
+  {name:'Полиця 600-660 (7011)', code:'SKU-061', category:'Полиці', stock:146, group:'stellage'},
+  {name:'Полиця внутр. кута 500 (7011)', code:'SKU-062', category:'Полиці', stock:220, group:'stellage'},
+  {name:'Полиця внутр. кута 600 (7011)', code:'SKU-063', category:'Полиці', stock:61, group:'stellage'},
+  {name:'Полиця внутр. кута 700 (7011)', code:'SKU-064', category:'Полиці', stock:249, group:'stellage'},
+  {name:'Полиця кондитерська 500-1330 7011', code:'SKU-065', category:'Полиці', stock:301, group:'stellage'},
+  {name:'Полиця кондитерська 600-1330 7011', code:'SKU-066', category:'Полиці', stock:90, group:'stellage'},
+  {name:'Полиця хлібна 1013х485х407 (7011)', code:'SKU-067', category:'Полиці', stock:301, group:'stellage'},
+  {name:'Полиця хлібна 660х485х407 (7011)', code:'SKU-068', category:'Полиці', stock:232, group:'stellage'},
+  {name:'Розподілювач кошика 300 (7011)', code:'SKU-069', category:'Аксесуари', stock:214, group:'stellage'},
+  {name:'Розподілювач кошика 700 (7011)', code:'SKU-070', category:'Аксесуари', stock:97, group:'stellage'},
+  {name:'Розподілювач кошика 800 (7011)', code:'SKU-071', category:'Аксесуари', stock:110, group:'stellage'},
+  {name:'Стінка задня (внутр.кут) 450*1000 (7011)', code:'SKU-072', category:'Стінки задні', stock:138, group:'stellage'},
+  {name:'Стінка задня 300*1000 (7011)', code:'SKU-073', category:'Стінки задні', stock:139, group:'stellage'},
+  {name:'Стінка задня 300*660 (7011)', code:'SKU-074', category:'Стінки задні', stock:268, group:'stellage'},
+  {name:'Стінка задня 450*1000 (7011)', code:'SKU-075', category:'Стінки задні', stock:321, group:'stellage'},
+  {name:'Стінка задня 450*1250 (7011)', code:'SKU-076', category:'Стінки задні', stock:154, group:'stellage'},
+  {name:'Стінка задня 450*1330 (7011)', code:'SKU-077', category:'Стінки задні', stock:22, group:'stellage'},
+  {name:'Стінка задня 450*660 (7011)', code:'SKU-078', category:'Стінки задні', stock:234, group:'stellage'},
+  {name:'Стінка задня перфорована 300*1000 (7011)', code:'SKU-079', category:'Стінки задні', stock:209, group:'stellage'},
+  {name:'Стінка задня перфорована 300*1330 (7011)', code:'SKU-080', category:'Стінки задні', stock:309, group:'stellage'},
+  {name:'Стінка задня перфорована 300*660 (7011)', code:'SKU-081', category:'Стінки задні', stock:84, group:'stellage'},
+  {name:'КЛН ПП 01 200 1000 Полка підсилена (7011 ш.п)', code:'SKU-098', category:'Підсилення полиці', stock:94, group:'stellage'},
+  {name:'КЛН ПП 01 200 660 Полка підсилена (7011 ш.п)', code:'SKU-099', category:'Підсилення полиці', stock:78, group:'stellage'},
+  {name:'КЛН ПП 01 300 1000 Полка підсилена (7011 ш.п)', code:'SKU-100', category:'Підсилення полиці', stock:25, group:'stellage'},
+  {name:'КЛН ПП 01 300 1250 Полка підсилена (7011 ш.п)', code:'SKU-101', category:'Підсилення полиці', stock:97, group:'stellage'},
+  {name:'КЛН ПП 01 300 1330 Полка підсилена (7011 ш.п)', code:'SKU-102', category:'Підсилення полиці', stock:220, group:'stellage'},
+  {name:'КЛН ПП 01 300 660 Полка підсилена (7011 ш.п)', code:'SKU-103', category:'Підсилення полиці', stock:92, group:'stellage'},
+  {name:'КЛН ПП 01 400 1000 Полка підсилена (7011 ш.п)', code:'SKU-104', category:'Підсилення полиці', stock:34, group:'stellage'},
+  {name:'КЛН ПП 01 400 1330 Полка підсилена (7011 ш.п)', code:'SKU-105', category:'Підсилення полиці', stock:135, group:'stellage'},
+  {name:'КЛН ПП 01 400 660 Полка підсилена (7011 ш.п)', code:'SKU-106', category:'Підсилення полиці', stock:116, group:'stellage'},
+  {name:'КЛН ПП 01 500 1000 Полка підсилена (7011 ш.п)', code:'SKU-107', category:'Підсилення полиці', stock:51, group:'stellage'},
+  {name:'КЛН ПП 01 500 1250 Полка підсилена (7011 ш.п)', code:'SKU-108', category:'Підсилення полиці', stock:258, group:'stellage'},
+  {name:'КЛН ПП 01 500 1330 Полка підсилена (7011 ш.п)', code:'SKU-109', category:'Підсилення полиці', stock:213, group:'stellage'},
+  {name:'КЛН ПП 01 500 660 Полка підсилена (7011 ш.п)', code:'SKU-110', category:'Підсилення полиці', stock:189, group:'stellage'},
+  {name:'КЛН ПП 01 600 1000 Полка підсилена (7011 ш.п)', code:'SKU-111', category:'Підсилення полиці', stock:289, group:'stellage'},
+  {name:'КЛН ПП 01 600 1250 Полка підсилена (7011 ш.п)', code:'SKU-112', category:'Підсилення полиці', stock:164, group:'stellage'},
+  {name:'КЛН ПП 01 600 1330 Полка підсилена (7011 ш.п)', code:'SKU-113', category:'Підсилення полиці', stock:246, group:'stellage'},
+  {name:'КЛН ПП 01 600 660 Полка підсилена (7011 ш.п)', code:'SKU-114', category:'Підсилення полиці', stock:212, group:'stellage'},
+  {name:'КЛН ППЛ 400 Перегородка полиці  (7011 глянец)', code:'SKU-115', category:'Перегородки', stock:263, group:'stellage'},
+  {name:'КЛН ППЛ 500 Перегородка полиці  (7011 глянец)', code:'SKU-116', category:'Перегородки', stock:151, group:'stellage'},
+  {name:'КЛН ППЛ 600 Перегородка полиці  (7011 глянец)', code:'SKU-117', category:'Перегородки', stock:62, group:'stellage'},
+  {name:'AT PRA 500 200 Перегородка акрилова', code:'SKU-130', category:'Перегородки', stock:96, group:'stellage'},
+  {name:'AT PRA 600 200 Перегородка акрилова', code:'SKU-131', category:'Перегородки', stock:281, group:'stellage'},
+  {name:'КМ КУ ПР 300 Ц Перегородка кошика універсального (zink)', code:'SKU-136', category:'Перегородки', stock:141, group:'stellage'},
+  {name:'КМ КУ ПР 800 Перегородка кошика універсального (7011)', code:'SKU-137', category:'Перегородки', stock:98, group:'stellage'},
+  {name:'Стол нержавеющий 1500', code:'SKU-142', category:'ТСО обладнання', stock:23, group:'tso'},
+  {name:'Стеллаж складской (сборный)', code:'SKU-143', category:'ТСО обладнання', stock:31, group:'tso'},
+  {name:'Стеллаж для инвентарной комнаты c перф.полками', code:'SKU-144', category:'ТСО обладнання', stock:15, group:'tso'},
+  {name:'Контейнер хлебный (без лотков)', code:'SKU-145', category:'ТСО обладнання', stock:9, group:'tso'},
+  {name:'Стойка для пакетов с урной, RALL 7011', code:'SKU-146', category:'ТСО обладнання', stock:46, group:'tso'},
+  {name:'Стойка под пакеты в овощной отдел, RALL 7011', code:'SKU-147', category:'ТСО обладнання', stock:14, group:'tso'},
+  {name:'Стійка для мнемосхеми RALL 7011', code:'SKU-148', category:'ТСО обладнання', stock:8, group:'tso'},
+  {name:'Стійка для купівельних паветів RALL 7011 КСО', code:'SKU-149', category:'ТСО обладнання', stock:13, group:'tso'},
+  {name:'Камеры  с ячейкой для крупногабаритной клади (в комплекте с замками и ключами), 8-ячеичные+1 для крупногабаритной клади, RAL 7011, дверцы поликарбонат', code:'SKU-150', category:'ТСО обладнання', stock:6, group:'tso'},
+  {name:'КЛН ПП 01 200 1330 Полка підсилена (7011 ш.п)', code:'SKU-151', category:'Підсилення полиці', stock:200, group:'stellage'},
+  {name:'Вставка до хлібного короба 1000х800 (7011)', code:'SKU-152', category:'Аксесуари', stock:181, group:'stellage'},
+  {name:'КМ КУ ПР 700 Перегородка кошика універсального (7011)', code:'SKU-153', category:'Перегородки', stock:110, group:'stellage'},
+  {name:'Розпірка 2700мм (траверса)', code:'SKU-168', category:'Траверси', stock:121, group:'palletka'},
+  {name:'Розпірка 1800мм (траверса)', code:'SKU-169', category:'Траверси', stock:129, group:'palletka'},
+  {name:'Розпірка 900мм (траверса)', code:'SKU-170', category:'Траверси', stock:186, group:'palletka'},
+  {name:'Фіксатор траверси', code:'SKU-171', category:'Палетні аксесуари', stock:183, group:'palletka'},
+  {name:'Полиця стелажа 2700х600 мм OSB-3 (15)', code:'SKU-172', category:'Палетні полиці', stock:169, group:'palletka'},
+  {name:'Полиця стелажа 900х600 мм вологостійкий OSB-3 (15)', code:'SKU-174', category:'Палетні полиці', stock:32, group:'palletka'},
+  {name:'Полиця стелажа 2700х800 мм вологостійкий OSB-3 (15)', code:'SKU-175', category:'Палетні полиці', stock:201, group:'palletka'},
+  {name:'Полиця стелажа 900х800 мм вологостійкий OSB-3 (15)', code:'SKU-177', category:'Палетні полиці', stock:215, group:'palletka'},
+  {name:'Перемичка полки під полку 600 мм.', code:'SKU-181', category:'Перемички полки', stock:245, group:'palletka'},
+  {name:'Перемичка полки під полку 800 мм.', code:'SKU-182', category:'Перемички полки', stock:35, group:'palletka'},
+  {name:'Рама стелажа палетного 2100 *600', code:'SKU-188', category:'Палетні рами', stock:202, group:'palletka'},
+  {name:'Рама стелажа палетного 2100 *800', code:'SKU-189', category:'Палетні рами', stock:135, group:'palletka'},
+  {name:'Полиця внутр. кута 400 (7011)', code:'SKU-190', category:'Полиці', stock:39, group:'stellage'},
+  {name:'КМ КРН 30 45 400 Кронштейн нахильний (7011 ш.п)', code:'SKU-191', category:'Кронштейни', stock:63, group:'stellage'},
+  {name:'Планка дерев\'яна АТБ 75*16*1312 (сосна, RAL 8017)', code:'SKU-192', category:'Аксесуари', stock:212, group:'stellage'},
+  {name:'Кошик сітч 1330 Ral 7011 (розмір 500)', code:'SKU-193', category:'Кошики', stock:105, group:'stellage'},
+  {name:'КМ КУ ПР 500 Перегородка кошика універсального (7011)', code:'SKU-194', category:'Перегородки', stock:248, group:'stellage'},
+  {name:'Полиця стелажа 1800х600 мм вологостійкий OSB-3 (15)', code:'SKU-195', category:'Палетні полиці', stock:114, group:'palletka'},
+  {name:'Полиця стелажа 1800х800 мм', code:'SKU-196', category:'Палетні полиці', stock:73, group:'palletka'},
+  {name:'Полиця стелажа 1800х1100 мм вологостійкий OSB-3 (15)', code:'SKU-197', category:'Палетні полиці', stock:76, group:'palletka'},
+  {name:'Перемичка полки під полку 1100 мм.', code:'SKU-198', category:'Перемички полки', stock:141, group:'palletka'},
+  {name:'Рама стелажа палетного 2100 *1100', code:'SKU-199', category:'Палетні рами', stock:120, group:'palletka'}
   ];
 
   function findProduct(name){ return products.find(function(p){ return p.name === name; }); }
 
-  function renderWarehouse(){
-    const body = document.getElementById('warehouseRows');
-    body.innerHTML = products.map(function(p){
-      const free = p.stock - p.reserved;
-      return '<tr><td>'+p.name+'</td><td data-label="Артикул">'+p.code+'</td><td data-label="Категория">'+p.category+'</td><td data-label="На складе">'+p.stock+'</td><td data-label="Резерв">'+p.reserved+'</td><td data-label="Свободно">'+free+'</td><td data-label="Остаток"><div class="stock-edit"><input type="number" value="'+p.stock+'"><button class="btn">Сохранить</button></div></td></tr>';
+  let warehouseFilterGroup = 'all';
+
+  function renderWarehouseFilter(){
+    const groups = [{key:'all', label:'Все'}, {key:'stellage', label:'Стелажка'}, {key:'tso', label:'ТСО'}, {key:'palletka', label:'Палетка'}];
+    const el = document.getElementById('warehouseFilter');
+    el.innerHTML = groups.map(function(g){
+      return '<button class="part-btn'+(warehouseFilterGroup===g.key?' active':'')+'" data-key="'+g.key+'">'+g.label+'</button>';
     }).join('');
+    el.querySelectorAll('.part-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        warehouseFilterGroup = btn.dataset.key;
+        renderWarehouseFilter();
+        renderWarehouse();
+      });
+    });
   }
 
-  const orders = [
-    {id:'№17 (РН17)', client:'АТБ-МАРКЕТ (м. Бровари)', created:'11.03.2026', due:'11.03.2026', statusClass:'shipped', statusLabel:'Отгружен', progress:100, items:[
+  function totalDemandForProduct(name){
+    let sum = 0;
+    orders.forEach(function(o){
+      const allItems = o.parts ? o.parts.reduce(function(acc,p){ return acc.concat(p.items); }, []) : (o.items || []);
+      allItems.forEach(function(it){ if(it.name === name) sum += it.qty; });
+    });
+    return sum;
+  }
+
+  function renderWarehouse(){
+    const body = document.getElementById('warehouseRows');
+    const list = warehouseFilterGroup === 'all' ? products : products.filter(function(p){ return p.group === warehouseFilterGroup; });
+    body.innerHTML = list.map(function(p){
+      const inOrders = totalDemandForProduct(p.name);
+      const remaining = p.stock - inOrders;
+      return '<tr><td>'+p.name+'</td><td data-label="Артикул">'+p.code+'</td><td data-label="Категория">'+p.category+'</td><td data-label="На складе">'+p.stock+'</td><td data-label="В заказах">'+inOrders+'</td><td data-label="Остаток">'+remaining+'</td><td data-label="Изменить"><div class="stock-edit"><input type="number" value="'+p.stock+'"><button class="btn">Сохранить</button></div></td></tr>';
+    }).join('');
+    body.querySelectorAll('tr').forEach(function(tr, idx){
+      const p = list[idx];
+      const input = tr.querySelector('.stock-edit input');
+      const btn = tr.querySelector('.stock-edit button');
+      btn.addEventListener('click', function(){
+        const newStock = parseInt(input.value, 10);
+        if(isNaN(newStock) || newStock < 0) return;
+        if(typeof db === 'undefined'){
+          p.stock = newStock;
+          renderWarehouse();
+          return;
+        }
+        btn.disabled = true;
+        db.collection('products').doc(p.code).update({stock:newStock}).catch(function(err){
+          alert('Не вдалось зберегти: ' + err.message);
+        }).finally(function(){
+          btn.disabled = false;
+        });
+      });
+    });
+  }
+
+  let orders = [
+    {id:'ЛЬВІВ-1519', company:'Продукти-1519', city:'Львів', address:'Львів, вул. М. Пимоненка, 14а', created:'09.07.2026', due:'07.08.2026', statusClass:'production', statusLabel:'В производстве', progress:0, parts:[
+      {key:'stellage', label:'Стелажка', items:[
+      {name:'Нога одностороння 700 1778-100-1 (7011)', qty:5},
+      {name:'Нога одностороння 300 1930-100-1 (7011)', qty:5},
+      {name:'Нога одностороння 500 1930-100-1 (7011)', qty:31},
+      {name:'Нога двостороння 500 1930-100-2 (7011)', qty:3},
+      {name:'Нога одностороння 800 1930-100-1 (7011)', qty:41},
+      {name:'Нога двостороння 800 1930-100-2 (7011)', qty:23},
+      {name:'Стінка задня 300*1000 (7011)', qty:2},
+      {name:'Стінка задня 300*660 (7011)', qty:2},
+      {name:'Стінка задня 450*1000 (7011)', qty:134},
+      {name:'Стінка задня 450*1250 (7011)', qty:8},
+      {name:'Стінка задня 450*1330 (7011)', qty:164},
+      {name:'Стінка задня 450*660 (7011)', qty:94},
+      {name:'Стінка задня перфорована 300*1330 (7011)', qty:6},
+      {name:'Бар’єр полиці 1000 (7011)', qty:45},
+      {name:'Бар’єр полиці 1330 (7011)', qty:42},
+      {name:'Бар’єр полиці 660 (7011)', qty:46},
+      {name:'КЛН ПП 01 200 1000 Полка підсилена (7011 ш.п)', qty:2},
+      {name:'КЛН ПП 01 200 660 Полка підсилена (7011 ш.п)', qty:5},
+      {name:'КЛН ПП 01 300 1000 Полка підсилена (7011 ш.п)', qty:24},
+      {name:'КЛН ПП 01 300 1250 Полка підсилена (7011 ш.п)', qty:2},
+      {name:'КЛН ПП 01 300 1330 Полка підсилена (7011 ш.п)', qty:40},
+      {name:'КЛН ПП 01 300 660 Полка підсилена (7011 ш.п)', qty:23},
+      {name:'КЛН ПП 01 400 1000 Полка підсилена (7011 ш.п)', qty:28},
+      {name:'КЛН ПП 01 400 1330 Полка підсилена (7011 ш.п)', qty:11},
+      {name:'КЛН ПП 01 400 660 Полка підсилена (7011 ш.п)', qty:87},
+      {name:'КЛН ПП 01 500 1000 Полка підсилена (7011 ш.п)', qty:127},
+      {name:'КЛН ПП 01 500 1250 Полка підсилена (7011 ш.п)', qty:9},
+      {name:'КЛН ПП 01 500 1330 Полка підсилена (7011 ш.п)', qty:177},
+      {name:'КЛН ПП 01 500 660 Полка підсилена (7011 ш.п)', qty:35},
+      {name:'КЛН ПП 01 600 1000 Полка підсилена (7011 ш.п)', qty:24},
+      {name:'КЛН ПП 01 600 1250 Полка підсилена (7011 ш.п)', qty:2},
+      {name:'КЛН ПП 01 600 1330 Полка підсилена (7011 ш.п)', qty:35},
+      {name:'КЛН ПП 01 600 660 Полка підсилена (7011 ш.п)', qty:4},
+      {name:'КЛН ППЛ 400 Перегородка полиці  (7011 глянец)', qty:46},
+      {name:'КЛН ППЛ 500 Перегородка полиці  (7011 глянец)', qty:24},
+      {name:'КЛН ППЛ 600 Перегородка полиці  (7011 глянец)', qty:6},
+      {name:'Гачок з цінником 300 (7011)', qty:20},
+      {name:'Кронштейн універсальний 300 (7011)', qty:34},
+      {name:'Кронштейн універсальний 400 (7011)', qty:238},
+      {name:'Кронштейн універсальний 500 (7011)', qty:526},
+      {name:'Кронштейн універсальний 600 (7011)', qty:138},
+      {name:'Полиця хлібна 1013х485х407 (7011)', qty:6},
+      {name:'Полиця хлібна 660х485х407 (7011)', qty:6},
+      {name:'Короб хлібний 1013х700х508 (7011)', qty:2},
+      {name:'Короб хлібний 660х700х508 (7011)', qty:2},
       {name:'Бар\'єр акриловий 1330 (7011)', qty:12},
-      {name:'Бар\'єр боковини акриловий 500 (7011)', qty:63},
-      {name:'Бар\'єр боковини акриловий 600 (7011)', qty:21},
-      {name:'Бар’єр боковий 400 (7011)', qty:118},
-      {name:'Бар’єр боковий 500 (7011)', qty:28},
-      {name:'Бар’єр боковий 600 (7011)', qty:7},
-      {name:'Бар’єр полиці 1000 (7011)', qty:30},
-      {name:'Бар’єр полиці 1330 (7011)', qty:87},
-      {name:'Бар’єр полиці 660 (7011)', qty:118},
-      {name:'Гачок з цінником 300 (7011)', qty:40},
-      {name:'Короб хлібний 1013х700х508 (7011)', qty:5},
-      {name:'Кошик сітч 1000 Ral 7011 (розмір 800)', qty:4},
-      {name:'Кошик сітч 1250 Ral 7011 (розмір 800)', qty:1},
-      {name:'Кошик сітч 1330 Ral 7011 (розмір 800)', qty:8},
-      {name:'Кошик сітч 660 Ral 7011 (розмір 800)', qty:2},
-      {name:'Кронштейн універсальний 400 (7011)', qty:260},
-      {name:'Кронштейн універсальний 500 (7011)', qty:814},
-      {name:'Кронштейн універсальний 600 (7011)', qty:218},
-      {name:'Нога двостороння 800 1930-100-2 (7011)', qty:48},
-      {name:'Нога одностороння 400 1930-100-1 (7011)', qty:36},
-      {name:'Нога одностороння 700 1778-100-1 (7011)', qty:6},
-      {name:'Нога одностороння 800 1930-100-1 (7011)', qty:33},
-      {name:'Підсилення полиці ТЗ - 1000', qty:20},
-      {name:'Підсилення полиці ТЗ - 1250', qty:1},
-      {name:'Підсилення полиці ТЗ - 1330', qty:85},
-      {name:'Підсилення полиці ТЗ - 660', qty:29},
-      {name:'Полиця 200-1000 (7011)', qty:5},
-      {name:'Полиця 300-1000 (7011)', qty:20},
-      {name:'Полиця 300-1250 (7011)', qty:1},
-      {name:'Полиця 300-1330 (7011)', qty:85},
-      {name:'Полиця 300-660 (7011)', qty:5},
-      {name:'Полиця 400-1330 (7011)', qty:6},
-      {name:'Полиця 400-660 (7011)', qty:154},
-      {name:'Полиця 500-1000 (7011)', qty:102},
-      {name:'Полиця 500-1250 (7011)', qty:5},
-      {name:'Полиця 500-1330 (7011)', qty:381},
-      {name:'Полиця 500-660 (7011)', qty:26},
-      {name:'Полиця 600-1000 (7011)', qty:20},
-      {name:'Полиця 600-1250 (7011)', qty:1},
-      {name:'Полиця 600-1330 (7011)', qty:80},
-      {name:'Полиця 600-660 (7011)', qty:5},
       {name:'Полиця кондитерська 500-1330 7011', qty:9},
       {name:'Полиця кондитерська 600-1330 7011', qty:3},
-      {name:'Полиця хлібна 1013х485х407 (7011)', qty:15},
-      {name:'Розподілювач кошика 800 (7011)', qty:43},
-      {name:'Стінка задня 300*1000 (7011)', qty:5},
-      {name:'Стінка задня 450*1000 (7011)', qty:91},
-      {name:'Стінка задня 450*1250 (7011)', qty:4},
-      {name:'Стінка задня 450*1330 (7011)', qty:344},
-      {name:'Стінка задня 450*660 (7011)', qty:116},
+      {name:'AT PRA 500 200 Перегородка акрилова', qty:63},
+      {name:'AT PRA 600 200 Перегородка акрилова', qty:21},
+      {name:'Кошик сітч 1000 Ral 7011 (розмір 800)', qty:3},
+      {name:'Кошик сітч 1330 Ral 7011 (розмір 800)', qty:7},
+      {name:'Кошик сітч 660 Ral 7011 (розмір 300)', qty:2},
+      {name:'Кошик сітч 1000 Ral 7011 (розмір 300)', qty:1},
+      {name:'КМ КУ ПР 300 Ц Перегородка кошика універсального (zink)', qty:6},
+      {name:'КМ КУ ПР 800 Перегородка кошика універсального (7011)', qty:30},
+      {name:'Підсилення полиці ТЗ - 660', qty:21},
+      {name:'Підсилення полиці ТЗ - 1000', qty:30},
+      {name:'Підсилення полиці ТЗ - 1250', qty:2},
+      {name:'Підсилення полиці ТЗ - 1330', qty:41}
+      ]},
+      {key:'tso', label:'ТСО', items:[
+      {name:'Стол нержавеющий 1500', qty:1},
+      {name:'Стеллаж складской (сборный)', qty:13},
+      {name:'Стеллаж для инвентарной комнаты c перф.полками', qty:1},
+      {name:'Контейнер хлебный (без лотков)', qty:3},
+      {name:'Стойка для пакетов с урной, RALL 7011', qty:5},
+      {name:'Стойка под пакеты в овощной отдел, RALL 7011', qty:5},
+      {name:'Стійка для мнемосхеми RALL 7011', qty:1},
+      {name:'Стійка для купівельних паветів RALL 7011 КСО', qty:3},
+      {name:'Камеры  с ячейкой для крупногабаритной клади (в комплекте с замками и ключами), 8-ячеичные+1 для крупногабаритной клади, RAL 7011, дверцы поликарбонат', qty:7}
+      ]}
+    ]},
+    {id:'ФАСТІВ-1493', company:'Продукти-1493', city:'Фастів', address:'м. Фастів, вул. Героїв Чорнобиля, 10', created:'07.07.2026', due:'25.07.2026', statusClass:'production', statusLabel:'В производстве', progress:0, parts:[
+      {key:'stellage', label:'Стелажка', items:[
+      {name:'Нога одностороння 700 1778-100-1 (7011)', qty:5},
+      {name:'Нога одностороння 500 1930-100-1 (7011)', qty:37},
+      {name:'Нога одностороння 800 1930-100-1 (7011)', qty:27},
+      {name:'Нога двостороння 800 1930-100-2 (7011)', qty:37},
+      {name:'Стінка задня 450*1000 (7011)', qty:149},
+      {name:'Стінка задня 450*1250 (7011)', qty:24},
+      {name:'Стінка задня 450*1330 (7011)', qty:236},
+      {name:'Стінка задня 450*660 (7011)', qty:103},
+      {name:'Стінка задня перфорована 300*660 (7011)', qty:24},
+      {name:'КЛН ПП 01 200 660 Полка підсилена (7011 ш.п)', qty:14},
+      {name:'КЛН ПП 01 300 1000 Полка підсилена (7011 ш.п)', qty:30},
+      {name:'КЛН ПП 01 300 1250 Полка підсилена (7011 ш.п)', qty:5},
+      {name:'КЛН ПП 01 300 1330 Полка підсилена (7011 ш.п)', qty:1},
+      {name:'КЛН ПП 01 300 660 Полка підсилена (7011 ш.п)', qty:13},
+      {name:'КЛН ПП 01 400 660 Полка підсилена (7011 ш.п)', qty:72},
+      {name:'КЛН ПП 01 500 1000 Полка підсилена (7011 ш.п)', qty:144},
+      {name:'КЛН ПП 01 500 1250 Полка підсилена (7011 ш.п)', qty:22},
+      {name:'КЛН ПП 01 500 1330 Полка підсилена (7011 ш.п)', qty:255},
+      {name:'КЛН ПП 01 500 660 Полка підсилена (7011 ш.п)', qty:51},
+      {name:'КЛН ПП 01 600 1000 Полка підсилена (7011 ш.п)', qty:30},
+      {name:'КЛН ПП 01 600 1250 Полка підсилена (7011 ш.п)', qty:5},
+      {name:'КЛН ПП 01 600 1330 Полка підсилена (7011 ш.п)', qty:51},
+      {name:'КЛН ПП 01 600 660 Полка підсилена (7011 ш.п)', qty:7},
+      {name:'Гачок з цінником 300 (7011)', qty:48},
+      {name:'Кронштейн універсальний 500 (7011)', qty:546},
+      {name:'Кронштейн універсальний 600 (7011)', qty:128},
+      {name:'Підсилення полиці ТЗ - 1000', qty:39},
+      {name:'Підсилення полиці ТЗ - 660', qty:41},
+      {name:'Короб хлібний 1013х700х508 (7011)', qty:3},
+      {name:'Короб хлібний 660х700х508 (7011)', qty:1},
+      {name:'Короб хлібний 660х530х508 (7011)', qty:2},
+      {name:'Бар\'єр акриловий 1330 (7011)', qty:12},
+      {name:'Полиця кондитерська 500-1330 7011', qty:9},
+      {name:'Полиця кондитерська 600-1330 7011', qty:3},
+      {name:'AT PRA 500 200 Перегородка акрилова', qty:63},
+      {name:'AT PRA 600 200 Перегородка акрилова', qty:21},
+      {name:'Кошик сітч 1000 Ral 7011 (розмір 800)', qty:6},
+      {name:'Кошик сітч 1330 Ral 7011 (розмір 800)', qty:6},
+      {name:'КМ КУ ПР 800 Перегородка кошика універсального (7011)', qty:36},
+      {name:'Підсилення полиці ТЗ - 1250', qty:5},
+      {name:'Підсилення полиці ТЗ - 1330', qty:56}
+      ]},
+      {key:'tso', label:'ТСО', items:[
+      {name:'Стол нержавеющий 1500', qty:1},
+      {name:'Стеллаж складской (сборный)', qty:13},
+      {name:'Стеллаж для инвентарной комнаты c перф.полками', qty:1},
+      {name:'Контейнер хлебный (без лотков)', qty:4},
+      {name:'Стойка для пакетов с урной, RALL 7011', qty:5},
+      {name:'Стойка под пакеты в овощной отдел, RALL 7011', qty:5},
+      {name:'Стійка для мнемосхеми RALL 7011', qty:1},
+      {name:'Стійка для купівельних паветів RALL 7011 КСО', qty:3},
+      {name:'Камеры  с ячейкой для крупногабаритной клади (в комплекте с замками и ключами), 8-ячеичные+1 для крупногабаритной клади, RAL 7011, дверцы поликарбонат', qty:5}
+      ]}
+    ]},
+    {id:'СУПРУНІВКА-1517', company:'Продукти-1517', city:'Супрунівка', address:'село Супрунівка, вул. Київська, 9/11', created:'02.06.2026', due:'29.06.2026', statusClass:'production', statusLabel:'В производстве', progress:0, parts:[
+      {key:'stellage', label:'Стелажка', items:[
+      {name:'Нога одностороння 500 1930-100-1 (7011)', qty:18},
+      {name:'Нога одностороння 700 1930-100-1 (7011)', qty:4},
+      {name:'Нога одностороння 800 1930-100-1 (7011)', qty:26},
+      {name:'Нога двостороння 800 1930-100-2 (7011)', qty:13},
+      {name:'Стінка задня 450*1000 (7011)', qty:80},
+      {name:'Стінка задня 450*1330 (7011)', qty:196},
+      {name:'Стінка задня 450*660 (7011)', qty:96},
       {name:'Стінка задня перфорована 300*1000 (7011)', qty:6},
-      {name:'Стінка задня перфорована 300*1330 (7011)', qty:6}
+      {name:'Полиця внутр. кута 500 (7011)', qty:4},
+      {name:'Полиця внутр. кута 600 (7011)', qty:1},
+      {name:'Полиця внутр. кута 700 (7011)', qty:1},
+      {name:'КЛН ПП 01 200 1000 Полка підсилена (7011 ш.п)', qty:2},
+      {name:'КЛН ПП 01 200 1330 Полка підсилена (7011 ш.п)', qty:1},
+      {name:'КЛН ПП 01 300 1000 Полка підсилена (7011 ш.п)', qty:18},
+      {name:'КЛН ПП 01 300 1330 Полка підсилена (7011 ш.п)', qty:47},
+      {name:'КЛН ПП 01 300 660 Полка підсилена (7011 ш.п)', qty:10},
+      {name:'КЛН ПП 01 400 1000 Полка підсилена (7011 ш.п)', qty:6},
+      {name:'КЛН ПП 01 400 660 Полка підсилена (7011 ш.п)', qty:81},
+      {name:'КЛН ПП 01 500 1000 Полка підсилена (7011 ш.п)', qty:81},
+      {name:'КЛН ПП 01 500 1330 Полка підсилена (7011 ш.п)', qty:222},
+      {name:'КЛН ПП 01 500 660 Полка підсилена (7011 ш.п)', qty:64},
+      {name:'КЛН ПП 01 600 1000 Полка підсилена (7011 ш.п)', qty:16},
+      {name:'КЛН ПП 01 600 1330 Полка підсилена (7011 ш.п)', qty:45},
+      {name:'КЛН ПП 01 600 660 Полка підсилена (7011 ш.п)', qty:8},
+      {name:'Гачок з цінником 300 (7011)', qty:16},
+      {name:'Кронштейн універсальний 500 (7011)', qty:604},
+      {name:'Кронштейн універсальний 600 (7011)', qty:156},
+      {name:'Стінка задня (внутр.кут) 450*1000 (7011)', qty:4},
+      {name:'Підсилення полиці ТЗ - 1000', qty:32},
+      {name:'Короб хлібний 1013х800х508 (7011)', qty:4},
+      {name:'Вставка до хлібного короба 1000х800 (7011)', qty:4},
+      {name:'Бар\'єр акриловий 1330 (7011)', qty:12},
+      {name:'Полиця кондитерська 500-1330 7011', qty:9},
+      {name:'Полиця кондитерська 600-1330 7011', qty:3},
+      {name:'AT PRA 500 200 Перегородка акрилова', qty:63},
+      {name:'AT PRA 600 200 Перегородка акрилова', qty:21},
+      {name:'Кошик сітч 1330 Ral 7011 (розмір 800)', qty:5},
+      {name:'Кошик сітч 1000 Ral 7011 (розмір 700)', qty:2},
+      {name:'Кошик сітч 1330 Ral 7011 (розмір 700)', qty:1},
+      {name:'КМ КУ ПР 700 Перегородка кошика універсального (7011)', qty:9},
+      {name:'КМ КУ ПР 800 Перегородка кошика універсального (7011)', qty:15},
+      {name:'Підсилення полиці ТЗ - 660', qty:22},
+      {name:'Підсилення полиці ТЗ - 1330', qty:48}
+      ]},
+      {key:'tso', label:'ТСО', items:[
+      {name:'Стол нержавеющий 1500', qty:1},
+      {name:'Стеллаж складской (сборный)', qty:15},
+      {name:'Стеллаж для инвентарной комнаты c перф.полками', qty:1},
+      {name:'Контейнер хлебный (без лотков)', qty:3},
+      {name:'Стойка для пакетов с урной, RALL 7011', qty:5},
+      {name:'Стойка под пакеты в овощной отдел, RALL 7011', qty:4},
+      {name:'Стійка для мнемосхеми RALL 7011', qty:1},
+      {name:'Стійка для купівельних паветів RALL 7011 КСО', qty:3},
+      {name:'Камеры  с ячейкой для крупногабаритной клади (в комплекте с замками и ключами), 8-ячеичные+1 для крупногабаритной клади, RAL 7011, дверцы поликарбонат', qty:6}
+      ]}
     ]},
-    {id:'№1042', client:'ТД Эпицентр', created:'15.07.2026', due:'05.08.2026', statusClass:'production', statusLabel:'В производстве', progress:65, items:[
-      {name:'Полиця 500-1330 (7011)', qty:50},
-      {name:'Кронштейн універсальний 500 (7011)', qty:120},
-      {name:'Стінка задня 450*1330 (7011)', qty:50}
+    {id:'РІВНЕ-1500', company:'Продукти-1500', city:'Рівне', address:'м. Рівне, вул. Литовська, 93, група нежитлових приміщень 100', created:'12.03.2026', due:'10.04.2026', statusClass:'production', statusLabel:'В производстве', progress:0, parts:[
+      {key:'palletka', label:'Палетка', items:[
+      {name:'Розпірка 2700мм (траверса)', qty:56},
+      {name:'Розпірка 1800мм (траверса)', qty:44},
+      {name:'Розпірка 900мм (траверса)', qty:44},
+      {name:'Фіксатор траверси', qty:288},
+      {name:'Полиця стелажа 2700х600 мм OSB-3 (15)', qty:4},
+      {name:'Полиця стелажа 900х600 мм вологостійкий OSB-3 (15)', qty:4},
+      {name:'Полиця стелажа 2700х800 мм вологостійкий OSB-3 (15)', qty:24},
+      {name:'Полиця стелажа 900х800 мм вологостійкий OSB-3 (15)', qty:18},
+      {name:'Перемичка полки під полку 600 мм.', qty:52},
+      {name:'Перемичка полки під полку 800 мм.', qty:288},
+      {name:'Рама стелажа палетного 2100 *600', qty:4},
+      {name:'Рама стелажа палетного 2100 *800', qty:26}
+      ]}
     ]},
-    {id:'№1043', client:'Нова Пошта Маркет', created:'18.07.2026', due:'10.08.2026', statusClass:'new', statusLabel:'Новый', progress:0, items:[
-      {name:'Кошик сітч 1000 Ral 7011 (розмір 800)', qty:15},
-      {name:'Полиця 300-1000 (7011)', qty:30}
-    ]},
-    {id:'№1041', client:'Ашан', created:'10.07.2026', due:'28.07.2026', statusClass:'ready', statusLabel:'Готов', progress:100, items:[
-      {name:'Стінка задня 450*1000 (7011)', qty:40},
-      {name:'Полиця 600-1330 (7011)', qty:25},
-      {name:'Нога одностороння 800 1930-100-1 (7011)', qty:20}
-    ]},
-    {id:'№1039', client:'Сільпо', created:'01.07.2026', due:'20.07.2026', statusClass:'shipped', statusLabel:'Отгружен', progress:100, items:[
-      {name:'Кронштейн універсальний 600 (7011)', qty:30},
-      {name:'Бар’єр полиці 1330 (7011)', qty:10}
-    ]},
-    {id:'№1044', client:'Восторг', created:'22.07.2026', due:'15.08.2026', statusClass:'new', statusLabel:'Новый', progress:0, items:[
-      {name:'Кошик сітч 1330 Ral 7011 (розмір 800)', qty:10},
-      {name:'Полиця 500-1000 (7011)', qty:40}
+    {id:'ПОЛОННЕ-1499', company:'Продукти-1499', city:'Полонне', address:'м. Полонне, вул. Шолом-Алейхема, 21', created:'23.03.2026', due:'03.04.2026', statusClass:'production', statusLabel:'В производстве', progress:0, parts:[
+      {key:'stellage', label:'Стелажка', items:[
+      {name:'Нога одностороння 500 1930-100-1 (7011)', qty:72},
+      {name:'Нога одностороння 700 1930-100-1 (7011)', qty:2},
+      {name:'Нога одностороння 800 1930-100-1 (7011)', qty:42},
+      {name:'Нога двостороння 800 1930-100-2 (7011)', qty:28},
+      {name:'Стінка задня 450*1000 (7011)', qty:100},
+      {name:'Стінка задня 450*1250 (7011)', qty:8},
+      {name:'Стінка задня 450*1330 (7011)', qty:368},
+      {name:'Стінка задня 450*660 (7011)', qty:104},
+      {name:'Стінка задня перфорована 300*660 (7011)', qty:6},
+      {name:'Полиця внутр. кута 400 (7011)', qty:4},
+      {name:'Полиця внутр. кута 500 (7011)', qty:6},
+      {name:'Полиця внутр. кута 600 (7011)', qty:1},
+      {name:'Полиця внутр. кута 700 (7011)', qty:1},
+      {name:'КЛН ПП 01 200 660 Полка підсилена (7011 ш.п)', qty:1},
+      {name:'КЛН ПП 01 300 1000 Полка підсилена (7011 ш.п)', qty:19},
+      {name:'КЛН ПП 01 300 1250 Полка підсилена (7011 ш.п)', qty:1},
+      {name:'КЛН ПП 01 300 1330 Полка підсилена (7011 ш.п)', qty:53},
+      {name:'КЛН ПП 01 300 660 Полка підсилена (7011 ш.п)', qty:9},
+      {name:'КЛН ПП 01 400 1000 Полка підсилена (7011 ш.п)', qty:14},
+      {name:'КЛН ПП 01 400 1330 Полка підсилена (7011 ш.п)', qty:160},
+      {name:'КЛН ПП 01 400 660 Полка підсилена (7011 ш.п)', qty:31},
+      {name:'КЛН ПП 01 500 1000 Полка підсилена (7011 ш.п)', qty:79},
+      {name:'КЛН ПП 01 500 1250 Полка підсилена (7011 ш.п)', qty:6},
+      {name:'КЛН ПП 01 500 1330 Полка підсилена (7011 ш.п)', qty:295},
+      {name:'КЛН ПП 01 500 660 Полка підсилена (7011 ш.п)', qty:70},
+      {name:'КЛН ПП 01 600 1250 Полка підсилена (7011 ш.п)', qty:1},
+      {name:'КЛН ПП 01 600 1330 Полка підсилена (7011 ш.п)', qty:50},
+      {name:'КЛН ПП 01 600 660 Полка підсилена (7011 ш.п)', qty:10},
+      {name:'Гачок з цінником 300 (7011)', qty:12},
+      {name:'КМ КРН 30 45 400 Кронштейн нахильний (7011 ш.п)', qty:8},
+      {name:'Кронштейн універсальний 500 (7011)', qty:630},
+      {name:'Кронштейн універсальний 600 (7011)', qty:162},
+      {name:'Стінка задня (внутр.кут) 450*1000 (7011)', qty:8},
+      {name:'Планка дерев\'яна АТБ 75*16*1312 (сосна, RAL 8017)', qty:6},
+      {name:'Підсилення полиці ТЗ - 1000', qty:38},
+      {name:'Короб хлібний 1013х700х508 (7011)', qty:5},
+      {name:'Бар\'єр акриловий 1330 (7011)', qty:12},
+      {name:'Полиця кондитерська 500-1330 7011', qty:9},
+      {name:'Полиця кондитерська 600-1330 7011', qty:3},
+      {name:'AT PRA 500 200 Перегородка акрилова', qty:63},
+      {name:'AT PRA 600 200 Перегородка акрилова', qty:21},
+      {name:'Кошик сітч 1330 Ral 7011 (розмір 500)', qty:10},
+      {name:'КМ КУ ПР 500 Перегородка кошика універсального (7011)', qty:30},
+      {name:'Підсилення полиці ТЗ - 660', qty:26},
+      {name:'Підсилення полиці ТЗ - 1250', qty:2},
+      {name:'Підсилення полиці ТЗ - 1330', qty:89}
+      ]},
+      {key:'palletka', label:'Палетка', items:[
+      {name:'Розпірка 2700мм (траверса)', qty:30},
+      {name:'Розпірка 1800мм (траверса)', qty:56},
+      {name:'Розпірка 900мм (траверса)', qty:8},
+      {name:'Фіксатор траверси', qty:188},
+      {name:'Полиця стелажа 1800х600 мм вологостійкий OSB-3 (15)', qty:4},
+      {name:'Полиця стелажа 900х600 мм вологостійкий OSB-3 (15)', qty:4},
+      {name:'Полиця стелажа 2700х800 мм вологостійкий OSB-3 (15)', qty:15},
+      {name:'Полиця стелажа 1800х800 мм', qty:12},
+      {name:'Полиця стелажа 1800х1100 мм вологостійкий OSB-3 (15)', qty:12},
+      {name:'Перемичка полки під полку 600 мм.', qty:40},
+      {name:'Перемичка полки під полку 800 мм.', qty:207},
+      {name:'Перемичка полки під полку 1100 мм.', qty:72},
+      {name:'Рама стелажа палетного 2100 *600', qty:4},
+      {name:'Рама стелажа палетного 2100 *800', qty:15},
+      {name:'Рама стелажа палетного 2100 *1100', qty:6}
+      ]}
     ]}
   ];
+
+  function orderName(order){
+    return 'АТБ ' + order.city;
+  }
+  function findOrder(id){
+    return orders.find(function(o){ return o.id === id; });
+  }
 
   function renderOrders(){
     const body = document.getElementById('ordersRows');
     body.innerHTML = orders.map(function(o, i){
-      return '<tr class="rowhover" data-idx="'+i+'"><td>'+o.id+'</td><td data-label="Клиент">'+o.client+'</td><td data-label="Дата создания">'+o.created+'</td><td data-label="Срок">'+o.due+'</td><td data-label="Статус"><span class="badge '+o.statusClass+'">'+o.statusLabel+'</span></td>'+
-        '<td data-label="Готовность"><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:'+o.progress+'%;"></div></div><div class="progress-pct">'+o.progress+'%</div></div></td></tr>';
+      return '<tr class="rowhover" data-idx="'+i+'"><td><span class="company-chip">'+orderName(o)+'</span></td><td data-label="Адрес">'+o.address+'</td><td data-label="Дата создания">'+o.created+'</td><td data-label="Срок">'+o.due+'</td><td data-label="Статус"><span class="badge '+o.statusClass+'">'+o.statusLabel+'</span></td></tr>';
     }).join('');
     body.querySelectorAll('tr').forEach(function(tr){
       tr.addEventListener('click', function(){ openOrderModal(orders[+tr.dataset.idx]); });
     });
   }
 
+  let currentModalOrder = null;
+  let currentModalPartKey = null;
+
   function openOrderModal(order){
-    document.getElementById('modalOrderTitle').textContent = 'Заказ ' + order.id + ' — ' + order.client;
-    document.getElementById('modalOrderSub').textContent = 'Создан: ' + order.created + '   •   Срок: ' + order.due + '   •   Статус: ' + order.statusLabel;
-    const rows = order.items.map(function(it){
+    currentModalOrder = order;
+    document.getElementById('modalOrderTitle').innerHTML = '<span class="company-chip">' + orderName(order) + '</span>';
+    document.getElementById('modalOrderSub').textContent = order.address + '   •   Создан: ' + order.created + '   •   Срок: ' + order.due + '   •   Статус: ' + order.statusLabel;
+
+    const switcher = document.getElementById('modalPartSwitcher');
+    if(order.parts && order.parts.length > 1){
+      switcher.style.display = 'flex';
+      switcher.innerHTML = order.parts.map(function(p){
+        return '<button class="part-btn" data-key="'+p.key+'">'+p.label+'</button>';
+      }).join('');
+      switcher.querySelectorAll('.part-btn').forEach(function(btn){
+        btn.addEventListener('click', function(){ renderModalPart(order, btn.dataset.key); });
+      });
+    } else {
+      switcher.style.display = 'none';
+      switcher.innerHTML = '';
+    }
+
+    const firstKey = order.parts ? order.parts[0].key : null;
+    renderModalPart(order, firstKey);
+
+    document.getElementById('orderModalOverlay').classList.add('open');
+  }
+
+  function renderModalPart(order, partKey){
+    const part = order.parts ? order.parts.find(function(p){ return p.key === partKey; }) : {items: order.items};
+    const items = part.items;
+    currentModalPartKey = part.key || partKey;
+
+    document.querySelectorAll('#modalPartSwitcher .part-btn').forEach(function(btn){
+      btn.classList.toggle('active', btn.dataset.key === partKey);
+    });
+
+    // для каждой позиции считаем спрос со стороны ВСЕХ ОСТАЛЬНЫХ заказов на тот же товар,
+    // чтобы отчёт учитывал общий склад, а не только текущий заказ
+    const itemInfos = items.map(function(it){
       const p = findProduct(it.name);
-      const stock = p ? p.stock : '—';
-      const reserved = p ? p.reserved : '—';
-      const free = p ? (p.stock - p.reserved) : '—';
-      return '<tr><td>'+it.name+'</td><td data-label="В заказе">'+it.qty+'</td><td data-label="На складе">'+stock+'</td><td data-label="Резерв">'+reserved+'</td><td data-label="Свободно">'+free+'</td></tr>';
+      const stock = p ? p.stock : null;
+
+      const otherDemands = [];
+      orders.forEach(function(o){
+        if(o.id === order.id) return;
+        const oItems = o.parts ? o.parts.reduce(function(acc,pp){ return acc.concat(pp.items); }, []) : (o.items || []);
+        const match = oItems.find(function(x){ return x.name === it.name; });
+        if(match) otherDemands.push({orderId:o.id, qty:match.qty});
+      });
+      const otherTotal = otherDemands.reduce(function(s,d){ return s + d.qty; }, 0);
+      const totalDemand = it.qty + otherTotal;
+      const remaining = (stock === null) ? null : (stock - totalDemand);
+
+      return {name:it.name, qty:it.qty, stock:stock,
+        otherDemands:otherDemands, otherTotal:otherTotal, remaining:remaining};
+    });
+
+    const rows = itemInfos.map(function(i){
+      const otherTitle = i.otherDemands.length ? i.otherDemands.map(function(d){ const o=findOrder(d.orderId); return (o?orderName(o):d.orderId)+': '+d.qty; }).join(', ') : '';
+      const otherCell = i.otherDemands.length ? '<span title="'+otherTitle+'">'+i.otherTotal+'</span>' : '—';
+      const remainCell = i.remaining === null ? '—' : i.remaining;
+      const remainClass = i.remaining === null ? '' : (i.remaining < 0 ? ' style="color:var(--red); font-weight:600;"' : (i.remaining < 50 ? ' style="color:var(--amber); font-weight:600;"' : ''));
+      return '<tr><td>'+i.name+'</td><td data-label="В заказе">'+i.qty+'</td><td data-label="На складе">'+(i.stock===null?'—':i.stock)+'</td><td data-label="В других заказах">'+otherCell+'</td><td data-label="Останется всего"'+remainClass+'>'+remainCell+'</td></tr>';
     }).join('');
     document.getElementById('modalItemsBody').innerHTML = rows;
 
     const crit = [], warn = [];
     let safeCount = 0;
-    order.items.forEach(function(it){
-      const p = findProduct(it.name);
-      if(!p) return;
-      const free = p.stock - p.reserved;
-      const remaining = free - it.qty;
-      if(remaining < 0) crit.push({name:it.name, need:it.qty-free});
-      else if(remaining < 50) warn.push({name:it.name, remaining:remaining});
+    itemInfos.forEach(function(i){
+      if(i.stock === null) return;
+      if(i.remaining < 0) crit.push({name:i.name, need:-i.remaining, otherDemands:i.otherDemands});
+      else if(i.remaining < 50) warn.push({name:i.name, remaining:i.remaining, otherDemands:i.otherDemands});
       else safeCount++;
     });
-    const total = order.items.length;
+    const total = items.length;
     const hasIssues = crit.length || warn.length;
+    const partLabel = part.label ? (' — ' + part.label) : '';
 
-    let reportHtml = '<div class="modal-report-title">Отчёт по складу для заказа '+order.id+'</div>';
+    function otherNote(otherDemands){
+      if(!otherDemands.length) return '';
+      const txt = otherDemands.map(function(d){ const o=findOrder(d.orderId); return (o?orderName(o):d.orderId)+': '+d.qty+' шт'; }).join(', ');
+      return '<div class="rnote" style="font-size:11px; color:var(--text-2); margin-top:2px;">с учётом др. заказов — '+txt+'</div>';
+    }
+
+    let reportHtml = '<div class="modal-report-title">Отчёт по складу для заказа «'+orderName(order)+'»'+partLabel+'</div>';
     reportHtml += '<div class="modal-report-summary'+(hasIssues?' has-issues':'')+'">'+
       (hasIssues
-        ? 'По <b>'+safeCount+'</b> из <b>'+total+'</b> позиций запаса хватает. Остальное — ниже.'
-        : 'Запаса хватает по всем '+total+' позициям заказа, дозаказывать ничего не нужно.')
+        ? 'По <b>'+safeCount+'</b> из <b>'+total+'</b> позиций запаса хватает (с учётом остальных активных заказов). Остальное — ниже.'
+        : 'Запаса хватает по всем '+total+' позициям — даже с учётом остальных активных заказов, дозаказывать ничего не нужно.')
       +'</div>';
 
     if(crit.length){
       reportHtml += '<div class="modal-report-group"><div class="modal-report-group-title">Не хватает сейчас ('+crit.length+')</div>'+
-        crit.map(function(c){ return '<div class="modal-report-row crit"><span class="rname">'+c.name+'</span><span class="rval">не хватает '+c.need+' шт</span></div>'; }).join('')+
+        crit.map(function(c){ return '<div class="modal-report-row crit"><span class="rname">'+c.name+otherNote(c.otherDemands)+'</span><span class="rval">не хватает '+c.need+' шт</span></div>'; }).join('')+
         '</div>';
     }
     if(warn.length){
       reportHtml += '<div class="modal-report-group"><div class="modal-report-group-title">Стоит пополнить ('+warn.length+')</div>'+
-        warn.map(function(w){ return '<div class="modal-report-row warn"><span class="rname">'+w.name+'</span><span class="rval">останется '+w.remaining+' шт</span></div>'; }).join('')+
+        warn.map(function(w){ return '<div class="modal-report-row warn"><span class="rname">'+w.name+otherNote(w.otherDemands)+'</span><span class="rval">останется '+w.remaining+' шт</span></div>'; }).join('')+
         '</div>';
     }
     document.getElementById('modalReport').innerHTML = reportHtml;
-
-    document.getElementById('orderModalOverlay').classList.add('open');
   }
+
+  async function exportOrderToExcel(order, partKey){
+    if(typeof ExcelJS === 'undefined'){
+      alert('Не удалось загрузить модуль Excel — нужен интернет. Попробуйте ещё раз при подключении к сети.');
+      return;
+    }
+    const thinBorder = { top:{style:'thin'}, left:{style:'thin'}, bottom:{style:'thin'}, right:{style:'thin'} };
+    const allParts = order.parts && order.parts.length ? order.parts : [{key:'items', label:'Товары', items: order.items || []}];
+    const part = allParts.find(function(p){ return p.key === partKey; }) || allParts[0];
+
+    const wb = new ExcelJS.Workbook();
+    const sheetName = (part.label || 'Товары').replace(/[\\\/\?\*\[\]:]/g,'').substring(0,31);
+    const ws = wb.addWorksheet(sheetName);
+    const isStellage = part.key === 'stellage';
+    const cols = isStellage ? ['Наименование Товара', 'Обмеры'] : ['№', 'Наименование оборудования', 'Кол-во, шт'];
+
+    ws.getCell('A1').value = 'Место поставки:';
+    ws.getCell('A1').font = { bold:true };
+    ws.getCell('B1').value = order.address;
+
+    ws.getCell('A2').value = 'Готовность заказа:';
+    ws.getCell('A2').font = { bold:true };
+    ws.getCell('B2').value = order.due;
+
+    const headerRowIdx = 4;
+    const headerRow = ws.getRow(headerRowIdx);
+    cols.forEach(function(c, i){ headerRow.getCell(i+1).value = c; });
+    headerRow.eachCell(function(cell){
+      cell.font = { bold:true };
+      cell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFD9D9D9'} };
+      cell.border = thinBorder;
+      cell.alignment = { vertical:'middle', horizontal:'center', wrapText:true };
+    });
+
+    part.items.forEach(function(it, idx){
+      const r = ws.getRow(headerRowIdx + 1 + idx);
+      if(isStellage){
+        r.getCell(1).value = it.name;
+        r.getCell(2).value = it.qty;
+      } else {
+        r.getCell(1).value = idx+1;
+        r.getCell(2).value = it.name;
+        r.getCell(3).value = it.qty;
+      }
+      for(let c=1; c<=cols.length; c++){ r.getCell(c).border = thinBorder; }
+    });
+
+    ws.columns = isStellage ? [{width:75},{width:14}] : [{width:6},{width:75},{width:14}];
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {type:'application/octet-stream'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = order.id + '-' + sheetName + '.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  document.getElementById('modalExportBtn').addEventListener('click', function(){
+    if(currentModalOrder) exportOrderToExcel(currentModalOrder, currentModalPartKey);
+  });
 
   document.getElementById('modalCloseBtn').addEventListener('click', function(){
     document.getElementById('orderModalOverlay').classList.remove('open');
@@ -522,8 +1112,9 @@
 
   function analyzeStock(){
     const demandMap = {};
-    orders.filter(function(o){ return o.id !== '№17 (РН17)'; }).forEach(function(o){
-      o.items.forEach(function(it){
+    orders.forEach(function(o){
+      const allItems = o.parts ? o.parts.reduce(function(acc,p){ return acc.concat(p.items); }, []) : (o.items || []);
+      allItems.forEach(function(it){
         if(!demandMap[it.name]) demandMap[it.name] = [];
         demandMap[it.name].push({orderId:o.id, qty:it.qty});
       });
@@ -533,22 +1124,22 @@
     Object.keys(demandMap).forEach(function(name){
       const p = findProduct(name);
       if(!p) return;
-      const free = p.stock - p.reserved;
+      const free = p.stock;
       const demands = demandMap[name];
-      let maxDemand = 0, refOrderId = '';
-      demands.forEach(function(d){ if(d.qty >= maxDemand){ maxDemand = d.qty; refOrderId = d.orderId; } });
-      const remaining = free - maxDemand;
+      // считаем СУММУ по всем заказам, где встречается товар, а не только самый крупный заказ
+      const totalDemand = demands.reduce(function(s,d){ return s + d.qty; }, 0);
+      const remaining = free - totalDemand;
       let status = 'safe';
       if(remaining < 0) status = 'critical';
       else if(remaining < 50) status = 'warning';
-      results.push({name:p.name, category:p.category, free:free, demand:maxDemand, refOrderId:refOrderId, remaining:remaining, status:status});
+      results.push({name:p.name, category:p.category, free:free, demand:totalDemand, breakdown:demands, remaining:remaining, status:status});
     });
 
     products.forEach(function(p){
       if(demandMap[p.name]) return;
-      const free = p.stock - p.reserved;
+      const free = p.stock;
       if(free < 30){
-        results.push({name:p.name, category:p.category, free:free, demand:null, refOrderId:null, remaining:free, status: free < 20 ? 'critical' : 'warning'});
+        results.push({name:p.name, category:p.category, free:free, demand:null, breakdown:[], remaining:free, status: free < 20 ? 'critical' : 'warning'});
       }
     });
 
@@ -575,28 +1166,67 @@
       '<div class="metric-card"><div class="metric-label">Требует внимания</div><div class="metric-value amber">'+warnCount+'</div></div>'+
       '<div class="metric-card"><div class="metric-label">Запаса достаточно</div><div class="metric-value green">'+(products.length-critCount-warnCount)+'</div></div>';
 
-    const shelfExample = items.find(function(i){ return i.status==='warning' && i.name.indexOf('Полиц')===0; }) || items.find(function(i){ return i.status==='warning'; });
-    const critExample = items.find(function(i){ return i.status==='critical'; });
-    let insight = '<div class="insight-box"><div class="insight-icon">!</div><div class="insight-text">';
-    if(shelfExample){
-      insight += 'Например: если поступит ещё один заказ на <b>'+shelfExample.name+'</b> объёмом от '+shelfExample.demand+' шт (как в заказе '+shelfExample.refOrderId+'), свободного остатка ('+shelfExample.free+' шт) хватит впритык — после такого заказа останется всего <b>'+shelfExample.remaining+' шт</b>.';
+    function breakdownText(breakdown){
+      return breakdown.map(function(d){ const o=findOrder(d.orderId); return (o?orderName(o):d.orderId)+': '+d.qty+' шт'; }).join(', ');
     }
-    if(critExample){
-      insight += '<br><br>По позиции <b>'+critExample.name+'</b> запаса уже не хватает на заказ такого объёма — свободно '+critExample.free+' шт'+(critExample.demand ? ', а нужно '+critExample.demand+' шт' : '')+'. Стоит дозаказать в первую очередь.';
-    }
-    insight += '</div></div>';
-    document.getElementById('analysisInsight').innerHTML = insight;
 
     document.getElementById('analysisRows').innerHTML = items.map(function(i){
       const statusLabel = i.status === 'critical' ? 'Не хватает' : (i.status === 'warning' ? 'Внимание' : 'Норма');
-      return '<tr><td>'+i.name+'</td><td data-label="Категория">'+i.category+'</td><td data-label="Свободно">'+i.free+'</td><td data-label="На основе заказа">'+(i.demand ? i.demand+' ('+i.refOrderId+')' : '—')+'</td><td data-label="Останется после">'+i.remaining+'</td>'+
+      const demandTitle = i.breakdown && i.breakdown.length ? breakdownText(i.breakdown) : '';
+      const n = i.breakdown ? i.breakdown.length : 0;
+      const n10 = n % 10, n100 = n % 100;
+      const orderWord = (n100 >= 11 && n100 <= 14) ? 'заказов' : (n10 === 1 ? 'заказ' : (n10 >= 2 && n10 <= 4) ? 'заказа' : 'заказов');
+      const demandCell = i.demand ? '<span title="'+demandTitle+'">'+i.demand+' ('+n+' '+orderWord+')</span>' : '—';
+      return '<tr><td>'+i.name+'</td><td data-label="Категория">'+i.category+'</td><td data-label="На складе">'+i.free+'</td><td data-label="Нужно по заказам">'+demandCell+'</td><td data-label="Останется после">'+i.remaining+'</td>'+
         '<td data-label="Статус"><span class="risk-badge '+i.status+'">'+statusLabel+'</span></td><td data-label="Рекомендация">'+recommendQty(i)+'</td></tr>';
     }).join('');
   }
 
-  renderWarehouse();
-  renderOrders();
-  renderAnalysis();
+  function renderDashboard(){
+    const active = orders.length;
+    const inProd = orders.filter(function(o){ return o.statusClass === 'production'; }).length;
+    const ready = orders.filter(function(o){ return o.statusClass === 'ready'; }).length;
+    const waiting = orders.filter(function(o){ return o.statusClass === 'ready' || o.statusClass === 'waiting'; }).length;
+    const totalStock = products.reduce(function(sum, p){ return sum + p.stock; }, 0);
+
+    document.getElementById('dashboardStats').innerHTML =
+      '<div class="metric-card"><div class="metric-label">Активные заказы</div><div class="metric-value gray">'+active+'</div></div>'+
+      '<div class="metric-card"><div class="metric-label">В производстве</div><div class="metric-value blue">'+inProd+'</div></div>'+
+      '<div class="metric-card"><div class="metric-label">Готовые</div><div class="metric-value green">'+ready+'</div></div>'+
+      '<div class="metric-card"><div class="metric-label">Ожидают отгрузку</div><div class="metric-value amber">'+waiting+'</div></div>'+
+      '<div class="metric-card"><div class="metric-label">Всего на складе</div><div class="metric-value gray">'+totalStock.toLocaleString('ru-RU')+' шт</div></div>';
+
+    const lastOrder = orders[orders.length - 1];
+    document.getElementById('todayList').innerHTML = lastOrder
+      ? ('+ новый заказ: '+orderName(lastOrder))
+      : 'Новых событий пока нет.';
+  }
+
+  function renderShipping(){
+    const body = document.getElementById('shippingRows');
+    body.innerHTML = orders.map(function(o){
+      const partsLabel = o.parts && o.parts.length ? o.parts.map(function(p){ return p.label; }).join(', ') : '—';
+      return '<tr><td><span class="company-chip">'+orderName(o)+'</span></td><td data-label="Адрес">'+o.address+'</td><td data-label="Срок">'+o.due+'</td><td data-label="Продукция">'+partsLabel+'</td><td data-label="Статус"><span class="badge '+o.statusClass+'">'+o.statusLabel+'</span></td></tr>';
+    }).join('');
+  }
+
+  function renderAll(){
+    renderWarehouseFilter();
+    renderWarehouse();
+    renderOrders();
+    renderAnalysis();
+    renderShipping();
+    renderDashboard();
+    if(currentModalOrder){
+      const fresh = findOrder(currentModalOrder.id);
+      if(fresh){
+        currentModalOrder = fresh;
+        renderModalPart(fresh, currentModalPartKey);
+      }
+    }
+  }
+
+  renderAll();
 </script>
 </body>
 </html>
