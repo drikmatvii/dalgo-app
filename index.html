@@ -409,10 +409,10 @@
     });
   }
 
-  // ВРЕМЕННО: тестовый пуш для проверки живого обновления (SKU-002, 222 -> 722 шт).
+  // ВРЕМЕННО: ручное обновление остатка (SKU-003: +500 шт, 44 -> 544).
   // Уберём эту строку в следующем обновлении — обычно уже существующие товары код не трогает.
   function pushTestUpdate(){
-    db.collection('products').doc('SKU-002').update({stock: 722}).catch(function(err){ console.error('test update failed:', err); });
+    db.collection('products').doc('SKU-003').update({stock: 544}).catch(function(err){ console.error('test update failed:', err); });
   }
 
   function startFirestoreSync(){
@@ -445,7 +445,7 @@
   let products = [
   {name:'Бар\'єр акриловий 1330 (7011)', code:'SKU-001', category:'Бар\'єри', stock:685, group:'stellage'},
   {name:'Бар\'єр боковини акриловий 500 (7011)', code:'SKU-002', category:'Бар\'єри', stock:722, group:'stellage'},
-  {name:'Бар\'єр боковини акриловий 600 (7011)', code:'SKU-003', category:'Бар\'єри', stock:44, group:'stellage'},
+  {name:'Бар\'єр боковини акриловий 600 (7011)', code:'SKU-003', category:'Бар\'єри', stock:544, group:'stellage'},
   {name:'Бар’єр боковий 400 (7011)', code:'SKU-004', category:'Бар\'єри', stock:294, group:'stellage'},
   {name:'Бар’єр боковий 500 (7011)', code:'SKU-005', category:'Бар\'єри', stock:207, group:'stellage'},
   {name:'Бар’єр боковий 600 (7011)', code:'SKU-006', category:'Бар\'єри', stock:49, group:'stellage'},
