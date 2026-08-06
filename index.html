@@ -616,7 +616,23 @@
   {name:'Полиця стелажа 1800х800 мм', code:'SKU-196', category:'Палетні полиці', stock:73, group:'palletka', plan:128},
   {name:'Полиця стелажа 1800х1100 мм вологостійкий OSB-3 (15)', code:'SKU-197', category:'Палетні полиці', stock:76, group:'palletka', plan:355},
   {name:'Перемичка полки під полку 1100 мм.', code:'SKU-198', category:'Перемички полки', stock:141, group:'palletka', plan:275},
-  {name:'Рама стелажа палетного 2100 *1100', code:'SKU-199', category:'Палетні рами', stock:120, group:'palletka', plan:222}
+  {name:'Рама стелажа палетного 2100 *1100', code:'SKU-199', category:'Палетні рами', stock:120, group:'palletka', plan:222},
+  {name:'Бар\'єр передній акрил 1008*172мм', code:'SKU-200', category:'Бар\'єри', stock:0, group:'stellage', plan:0},
+  {name:'Гачок 200мм без цінникотримача', code:'SKU-201', category:'Аксесуари', stock:0, group:'stellage', plan:0},
+  {name:'Кронштейн універсальний двухпозиційний 400', code:'SKU-202', category:'Кронштейни', stock:0, group:'stellage', plan:0},
+  {name:'Накладка гондоли 60 1020мм', code:'SKU-203', category:'Аксесуари', stock:0, group:'stellage', plan:0},
+  {name:'Накладка гондоли 60 1330мм', code:'SKU-204', category:'Аксесуари', stock:0, group:'stellage', plan:0},
+  {name:'Нога двостороння 400 1450-60-2', code:'SKU-205', category:'Ноги', stock:0, group:'stellage', plan:0},
+  {name:'Нога одностороння 400 1450-60-1', code:'SKU-206', category:'Ноги', stock:0, group:'stellage', plan:0},
+  {name:'Нога одностороння 400 2387-60-1', code:'SKU-207', category:'Ноги', stock:0, group:'stellage', plan:0},
+  {name:'Перегородка акрил 387*200(150)', code:'SKU-208', category:'Перегородки', stock:0, group:'stellage', plan:0},
+  {name:'Полиця 400 1020мм', code:'SKU-209', category:'Полиці', stock:0, group:'stellage', plan:0},
+  {name:'Полиця 400 1330мм', code:'SKU-210', category:'Полиці', stock:0, group:'stellage', plan:0},
+  {name:'Полиця кондитерська 400 1020мм', code:'SKU-211', category:'Полиці', stock:0, group:'stellage', plan:0},
+  {name:'Стінка задня 450 1020мм', code:'SKU-212', category:'Стінки задні', stock:0, group:'stellage', plan:0},
+  {name:'Стінка задня 450 1330мм', code:'SKU-213', category:'Стінки задні', stock:0, group:'stellage', plan:0},
+  {name:'Стінка задня перфорована 450 1020мм', code:'SKU-214', category:'Стінки задні', stock:0, group:'stellage', plan:0},
+  {name:'Стінка задня перфорована 450 1330мм', code:'SKU-215', category:'Стінки задні', stock:0, group:'stellage', plan:0}
   ];
 
   function findProduct(name){ return products.find(function(p){ return p.name === name; }); }
@@ -910,10 +926,31 @@
       {name:'Рама стелажа палетного 2100 *800', qty:15},
       {name:'Рама стелажа палетного 2100 *1100', qty:6}
       ]}
+    ]},
+    {id:'ЗООМАГ-85', company:'Зоомаг', city:'', label:'Заказ зоомаг', address:'ФОП Єрмолаєва Яна (адреса доставки не вказана в документі)', created:'05.08.2026', due:'уточнюється', statusClass:'production', statusLabel:'В производстве', progress:0, parts:[
+      {key:'stellage', label:'Стелажка', items:[
+      {name:'Бар\'єр передній акрил 1008*172мм', qty:7},
+      {name:'Гачок 200мм без цінникотримача', qty:500},
+      {name:'Кронштейн універсальний двухпозиційний 400', qty:454},
+      {name:'Накладка гондоли 60 1020мм', qty:8},
+      {name:'Накладка гондоли 60 1330мм', qty:4},
+      {name:'Нога двостороння 400 1450-60-2', qty:16},
+      {name:'Нога одностороння 400 1450-60-1', qty:16},
+      {name:'Нога одностороння 400 2387-60-1', qty:20},
+      {name:'Перегородка акрил 387*200(150)', qty:49},
+      {name:'Полиця 400 1020мм', qty:227},
+      {name:'Полиця 400 1330мм', qty:41},
+      {name:'Полиця кондитерська 400 1020мм', qty:7},
+      {name:'Стінка задня 450 1020мм', qty:127},
+      {name:'Стінка задня 450 1330мм', qty:19},
+      {name:'Стінка задня перфорована 450 1020мм', qty:20},
+      {name:'Стінка задня перфорована 450 1330мм', qty:10}
+      ]}
     ]}
   ];
 
   function orderName(order){
+    if(order.label) return order.label;
     return 'АТБ ' + order.city;
   }
   function findOrder(id){
