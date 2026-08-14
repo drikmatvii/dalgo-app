@@ -224,6 +224,7 @@
     <div class="nav-item" data-section="orders"><span class="nav-icon">▤</span><span class="nav-label" data-short="Заказы">Заказы</span></div>
     <div class="nav-item" data-section="warehouse"><span class="nav-icon">▥</span><span class="nav-label" data-short="Склад">Склад</span></div>
     <div class="nav-item" data-section="analysis"><span class="nav-icon">◈</span><span class="nav-label" data-short="Анализ">Анализ и рекомендации</span></div>
+    <div class="nav-item" data-section="planning"><span class="nav-icon">◫</span><span class="nav-label" data-short="План">Прорахунок плану на місяць</span></div>
     <div class="nav-item" data-section="shipping"><span class="nav-icon">▧</span><span class="nav-label" data-short="Отгрузки">Отгрузки</span></div>
     <div class="sidebar-footer">
       <div class="user-email" id="currentUserEmail"></div>
@@ -291,6 +292,21 @@
         <table>
           <tr><th>Товар</th><th>Категория</th><th>На складе</th><th>План на месяц</th><th>Нужно по заказам</th><th>Останется после</th><th>Статус</th><th>Рекомендация</th></tr>
           <tbody id="analysisRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section" id="planning">
+      <div class="page-title">Прорахунок плану на місяць</div>
+      <div class="page-sub">Щомісяця виготовляється стільки, скільки в середньому йде на 5 магазинів АТБ — щоб завжди був запас</div>
+      <div style="margin-bottom:12px; display:flex; gap:10px;">
+        <button class="btn" id="applyPlanBtn">Застосувати план до складу</button>
+        <button class="btn" id="exportPlanBtn">⭳ Excel</button>
+      </div>
+      <div class="card" style="padding:0;">
+        <table>
+          <tr><th>Товар</th><th>Категорія</th><th>На складі</th><th>План на місяць</th></tr>
+          <tbody id="planningRows"></tbody>
         </table>
       </div>
     </div>
@@ -466,10 +482,27 @@
     }).catch(function(err){ console.error('full products repair failed:', err); });
   }
 
+  // ВРЕМЕННО: удаляет из базы заказы, которых больше нет в коде (например, убранные из списка
+  // старые заказы АТБ) — иначе onSnapshot будет постоянно подтягивать их обратно из старой базы.
+  // Уберём эту функцию после этого обновления.
+  function fullOrdersRepair(){
+    const codeOrders = orders.slice();
+    db.collection('orders').get().then(function(snap){
+      const validIds = {};
+      codeOrders.forEach(function(o){ validIds[o.id] = true; });
+      const toDelete = snap.docs.filter(function(d){ return !validIds[d.id]; }).map(function(d){ return d.id; });
+      if(!toDelete.length) return;
+      const batch = db.batch();
+      toDelete.forEach(function(id){ batch.delete(db.collection('orders').doc(id)); });
+      return batch.commit();
+    }).catch(function(err){ console.error('full orders repair failed:', err); });
+  }
+
   function startFirestoreSync(){
     pushTestUpdate();
     cleanupObsoleteItems();
     fullProductsRepair();
+    fullOrdersRepair();
     syncNewLocalItemsToFirestore();
     unsubProducts = db.collection('products').onSnapshot(function(snap){
       products = snap.docs.map(function(d){ return d.data(); }).sort(function(a,b){ return (a.code||'').localeCompare(b.code||''); });
@@ -496,58 +529,170 @@
 
 <script>
   let products = [
-  {name:'Кронштейн універсальний 300 (7011)', code:'SKU-028', category:'Кронштейни', stock:170, group:'stellage', plan:352},
-  {name:'Кронштейн універсальний 400 (7011)', code:'SKU-029', category:'Кронштейни', stock:7020, group:'stellage', plan:379},
-  {name:'Кронштейн універсальний 500 (7011)', code:'SKU-030', category:'Кронштейни', stock:9170, group:'stellage', plan:299},
-  {name:'Кронштейн універсальний 600 (7011)', code:'SKU-031', category:'Кронштейни', stock:2790, group:'stellage', plan:234},
-  {name:'Нога двостороння 500 1930-100-2 (7011)', code:'SKU-032', category:'Ноги', stock:4, group:'stellage', plan:132},
-  {name:'Нога двостороння 800 1930-100-2 (7011)', code:'SKU-033', category:'Ноги', stock:603, group:'stellage', plan:249},
-  {name:'Нога одностороння 500 1930-100-1 (7011)', code:'SKU-035', category:'Ноги', stock:521, group:'stellage', plan:162},
-  {name:'Нога одностороння 700 1778-100-1 (7011)', code:'SKU-036', category:'Ноги', stock:26, group:'stellage', plan:23},
-  {name:'Нога одностороння 700 1930-100-1 (7011)', code:'SKU-037', category:'Ноги', stock:49, group:'stellage', plan:101},
-  {name:'Нога одностороння 800 1930-100-1 (7011)', code:'SKU-038', category:'Ноги', stock:470, group:'stellage', plan:377},
-  {name:'Полиця 200-1000 (7011)', code:'SKU-043', category:'Полиці', stock:26, group:'stellage', plan:130},
-  {name:'Полиця 200-1330 (7011)', code:'SKU-044', category:'Полиці', stock:40, group:'stellage', plan:192},
-  {name:'Полиця 200-660 (7011)', code:'SKU-045', category:'Полиці', stock:30, group:'stellage', plan:72},
-  {name:'Полиця 300-1000 (7011)', code:'SKU-046', category:'Полиці', stock:216, group:'stellage', plan:67},
-  {name:'Полиця 300-1250 (7011)', code:'SKU-047', category:'Полиці', stock:21, group:'stellage', plan:214},
-  {name:'Полиця 300-1330 (7011)', code:'SKU-048', category:'Полиці', stock:630, group:'stellage', plan:69},
-  {name:'Полиця 300-660 (7011)', code:'SKU-049', category:'Полиці', stock:148, group:'stellage', plan:203},
-  {name:'Полиця 400-1000 (7011)', code:'SKU-050', category:'Полиці', stock:555, group:'stellage', plan:196},
-  {name:'Полиця 400-1250 (7011)', code:'SKU-051', category:'Полиці', stock:79, group:'stellage', plan:329},
-  {name:'Полиця 400-1330 (7011)', code:'SKU-052', category:'Полиці', stock:394, group:'stellage', plan:155},
-  {name:'Полиця 400-660 (7011)', code:'SKU-053', category:'Полиці', stock:1092, group:'stellage', plan:42},
-  {name:'Полиця 500-1000 (7011)', code:'SKU-054', category:'Полиці', stock:1092, group:'stellage', plan:393},
-  {name:'Полиця 500-1250 (7011)', code:'SKU-055', category:'Полиці', stock:118, group:'stellage', plan:255},
-  {name:'Полиця 500-1330 (7011)', code:'SKU-056', category:'Полиці', stock:2960, group:'stellage', plan:294},
-  {name:'Полиця 500-660 (7011)', code:'SKU-057', category:'Полиці', stock:1040, group:'stellage', plan:83},
-  {name:'Полиця 600-1000 (7011)', code:'SKU-058', category:'Полиці', stock:332, group:'stellage', plan:213},
-  {name:'Полиця 600-1250 (7011)', code:'SKU-059', category:'Полиці', stock:61, group:'stellage', plan:60},
-  {name:'Полиця 600-1330 (7011)', code:'SKU-060', category:'Полиці', stock:943, group:'stellage', plan:302},
-  {name:'Полиця 600-660 (7011)', code:'SKU-061', category:'Полиці', stock:249, group:'stellage', plan:170},
-  {name:'Полиця внутр. кута 500 (7011)', code:'SKU-062', category:'Полиці', stock:65, group:'stellage', plan:341},
-  {name:'Полиця внутр. кута 600 (7011)', code:'SKU-063', category:'Полиці', stock:23, group:'stellage', plan:336},
-  {name:'Полиця внутр. кута 700 (7011)', code:'SKU-064', category:'Полиці', stock:23, group:'stellage', plan:205},
-  {name:'Полиця кондитерська 500-1330 7011', code:'SKU-065', category:'Полиці', stock:33, group:'stellage', plan:315},
-  {name:'Полиця кондитерська 600-1330 7011', code:'SKU-066', category:'Полиці', stock:11, group:'stellage', plan:118},
-  {name:'Стінка задня (внутр.кут) 450*1000 (7011)', code:'SKU-072', category:'Стінки задні', stock:46, group:'stellage', plan:168},
-  {name:'Стінка задня 300*1000 (7011)', code:'SKU-073', category:'Стінки задні', stock:27, group:'stellage', plan:60},
-  {name:'Стінка задня 300*660 (7011)', code:'SKU-074', category:'Стінки задні', stock:23, group:'stellage', plan:139},
-  {name:'Стінка задня 450*1000 (7011)', code:'SKU-075', category:'Стінки задні', stock:1160, group:'stellage', plan:71},
-  {name:'Стінка задня 450*1250 (7011)', code:'SKU-076', category:'Стінки задні', stock:58, group:'stellage', plan:214},
-  {name:'Стінка задня 450*1330 (7011)', code:'SKU-077', category:'Стінки задні', stock:3896, group:'stellage', plan:162},
-  {name:'Стінка задня 450*660 (7011)', code:'SKU-078', category:'Стінки задні', stock:480, group:'stellage', plan:252},
-  {name:'Стінка задня перфорована 300*1000 (7011)', code:'SKU-079', category:'Стінки задні', stock:29, group:'stellage', plan:345},
-  {name:'Стінка задня перфорована 300*1330 (7011)', code:'SKU-080', category:'Стінки задні', stock:36, group:'stellage', plan:206},
-  {name:'Стінка задня перфорована 300*660 (7011)', code:'SKU-081', category:'Стінки задні', stock:9, group:'stellage', plan:103},
-  {name:'Полиця внутр. кута 400 (7011)', code:'SKU-190', category:'Полиці', stock:9, group:'stellage', plan:157},
-  {name:'Полиця кондитерська 400-1330 7011', code:'SKU-216', category:'Полиці', stock:10, group:'stellage', plan:0},
-  {name:'Полиця 200-1250 (7011)', code:'SKU-261', category:'Полиці', stock:36, group:'stellage', plan:0},
-  {name:'Стінка задня 300*1250 (7011)', code:'SKU-270', category:'Стінки задні', stock:8, group:'stellage', plan:0},
-  {name:'Стінка задня 300*1330 (7011)', code:'SKU-271', category:'Стінки задні', stock:44, group:'stellage', plan:0},
-  {name:'Стінка задня перфорована 300*1250 (7011)', code:'SKU-273', category:'Стінки задні', stock:4, group:'stellage', plan:0},
-  {name:'Стінка задня 150*1000 (7011)', code:'SKU-274', category:'Стінки задні', stock:59, group:'stellage', plan:0},
-  {name:'Стінка задня перфорована 450*1000 (7011)', code:'SKU-275', category:'Стінки задні', stock:3, group:'stellage', plan:0}
+  {name:'Бар\'єр акриловий 1330 (7011)', code:'SKU-001', category:'Бар\'єри', stock:0, group:'stellage', plan:12, verified:false},
+  {name:'Бар\'єр боковини акриловий 500 (7011)', code:'SKU-002', category:'Бар\'єри', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Бар\'єр боковини акриловий 600 (7011)', code:'SKU-003', category:'Бар\'єри', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Бар’єр боковий 400 (7011)', code:'SKU-004', category:'Бар\'єри', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Бар’єр боковий 500 (7011)', code:'SKU-005', category:'Бар\'єри', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Бар’єр боковий 600 (7011)', code:'SKU-006', category:'Бар\'єри', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Бар’єр полиці 1000 (7011)', code:'SKU-007', category:'Бар\'єри', stock:0, group:'stellage', plan:17, verified:false},
+  {name:'Бар’єр полиці 1250 (7011)', code:'SKU-008', category:'Бар\'єри', stock:0, group:'stellage', plan:2, verified:false},
+  {name:'Бар’єр полиці 1330 (7011)', code:'SKU-009', category:'Бар\'єри', stock:0, group:'stellage', plan:19, verified:false},
+  {name:'Бар’єр полиці 660 (7011)', code:'SKU-010', category:'Бар\'єри', stock:0, group:'stellage', plan:19, verified:false},
+  {name:'Вставка до хлібного кошика 1000 (7011)', code:'SKU-011', category:'Аксесуари', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Вставка до хлібного кошика 660 (7011)', code:'SKU-012', category:'Аксесуари', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Гачок з цінником 300 (7011)', code:'SKU-013', category:'Аксесуари', stock:0, group:'stellage', plan:22, verified:false},
+  {name:'Короб хлібний 1013х700х508 (7011)', code:'SKU-014', category:'Короби', stock:0, group:'stellage', plan:2, verified:false},
+  {name:'Короб хлібний 1013х800х508 (7011)', code:'SKU-015', category:'Короби', stock:0, group:'stellage', plan:1, verified:false},
+  {name:'Короб хлібний 660х530х508 (7011)', code:'SKU-016', category:'Короби', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Короб хлібний 660х700х508 (7011)', code:'SKU-017', category:'Короби', stock:0, group:'stellage', plan:1, verified:false},
+  {name:'Короб хлібний 660х800х508 (7011)', code:'SKU-018', category:'Короби', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Кошик сітч 1000 Ral 7011 (розмір 300)', code:'SKU-019', category:'Кошики', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Кошик сітч 1000 Ral 7011 (розмір 700)', code:'SKU-020', category:'Кошики', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Кошик сітч 1000 Ral 7011 (розмір 800)', code:'SKU-021', category:'Кошики', stock:0, group:'stellage', plan:2, verified:false},
+  {name:'Кошик сітч 1250 Ral 7011 (розмір 800)', code:'SKU-022', category:'Кошики', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Кошик сітч 1330 Ral 7011 (розмір 700)', code:'SKU-023', category:'Кошики', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Кошик сітч 1330 Ral 7011 (розмір 800)', code:'SKU-024', category:'Кошики', stock:0, group:'stellage', plan:6, verified:false},
+  {name:'Кошик сітч 660 Ral 7011 (розмір 300)', code:'SKU-025', category:'Кошики', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Кошик сітч 660 Ral 7011 (розмір 700)', code:'SKU-026', category:'Кошики', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Кошик сітч 660 Ral 7011 (розмір 800)', code:'SKU-027', category:'Кошики', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Кронштейн універсальний 300 (7011)', code:'SKU-028', category:'Кронштейни', stock:170, group:'stellage', plan:7, verified:true},
+  {name:'Кронштейн універсальний 400 (7011)', code:'SKU-029', category:'Кронштейни', stock:7020, group:'stellage', plan:96, verified:true},
+  {name:'Кронштейн універсальний 500 (7011)', code:'SKU-030', category:'Кронштейни', stock:9170, group:'stellage', plan:554, verified:true},
+  {name:'Кронштейн універсальний 600 (7011)', code:'SKU-031', category:'Кронштейни', stock:2790, group:'stellage', plan:137, verified:true},
+  {name:'Нога двостороння 500 1930-100-2 (7011)', code:'SKU-032', category:'Ноги', stock:4, group:'stellage', plan:1, verified:true},
+  {name:'Нога двостороння 800 1930-100-2 (7011)', code:'SKU-033', category:'Ноги', stock:603, group:'stellage', plan:25, verified:true},
+  {name:'Нога одностороння 300 1930-100-1 (7011)', code:'SKU-034', category:'Ноги', stock:0, group:'stellage', plan:1, verified:false},
+  {name:'Нога одностороння 500 1930-100-1 (7011)', code:'SKU-035', category:'Ноги', stock:521, group:'stellage', plan:39, verified:true},
+  {name:'Нога одностороння 700 1778-100-1 (7011)', code:'SKU-036', category:'Ноги', stock:26, group:'stellage', plan:3, verified:true},
+  {name:'Нога одностороння 700 1930-100-1 (7011)', code:'SKU-037', category:'Ноги', stock:49, group:'stellage', plan:1, verified:true},
+  {name:'Нога одностороння 800 1930-100-1 (7011)', code:'SKU-038', category:'Ноги', stock:470, group:'stellage', plan:35, verified:true},
+  {name:'Підсилення полиці ТЗ - 1000', code:'SKU-039', category:'Підсилення полиці', stock:0, group:'stellage', plan:33, verified:false},
+  {name:'Підсилення полиці ТЗ - 1250', code:'SKU-040', category:'Підсилення полиці', stock:0, group:'stellage', plan:2, verified:false},
+  {name:'Підсилення полиці ТЗ - 1330', code:'SKU-041', category:'Підсилення полиці', stock:0, group:'stellage', plan:61, verified:false},
+  {name:'Підсилення полиці ТЗ - 660', code:'SKU-042', category:'Підсилення полиці', stock:0, group:'stellage', plan:28, verified:false},
+  {name:'Полиця 200-1000 (7011)', code:'SKU-043', category:'Полиці', stock:26, group:'stellage', plan:0, verified:true},
+  {name:'Полиця 200-1330 (7011)', code:'SKU-044', category:'Полиці', stock:40, group:'stellage', plan:0, verified:true},
+  {name:'Полиця 200-660 (7011)', code:'SKU-045', category:'Полиці', stock:30, group:'stellage', plan:0, verified:true},
+  {name:'Полиця 300-1000 (7011)', code:'SKU-046', category:'Полиці', stock:216, group:'stellage', plan:0, verified:true},
+  {name:'Полиця 300-1250 (7011)', code:'SKU-047', category:'Полиці', stock:21, group:'stellage', plan:0, verified:true},
+  {name:'Полиця 300-1330 (7011)', code:'SKU-048', category:'Полиці', stock:630, group:'stellage', plan:0, verified:true},
+  {name:'Полиця 300-660 (7011)', code:'SKU-049', category:'Полиці', stock:148, group:'stellage', plan:0, verified:true},
+  {name:'Полиця 400-1000 (7011)', code:'SKU-050', category:'Полиці', stock:555, group:'stellage', plan:0, verified:true},
+  {name:'Полиця 400-1250 (7011)', code:'SKU-051', category:'Полиці', stock:79, group:'stellage', plan:0, verified:true},
+  {name:'Полиця 400-1330 (7011)', code:'SKU-052', category:'Полиці', stock:394, group:'stellage', plan:0, verified:true},
+  {name:'Полиця 400-660 (7011)', code:'SKU-053', category:'Полиці', stock:1092, group:'stellage', plan:0, verified:true},
+  {name:'Полиця 500-1000 (7011)', code:'SKU-054', category:'Полиці', stock:1092, group:'stellage', plan:0, verified:true},
+  {name:'Полиця 500-1250 (7011)', code:'SKU-055', category:'Полиці', stock:118, group:'stellage', plan:0, verified:true},
+  {name:'Полиця 500-1330 (7011)', code:'SKU-056', category:'Полиці', stock:2960, group:'stellage', plan:0, verified:true},
+  {name:'Полиця 500-660 (7011)', code:'SKU-057', category:'Полиці', stock:1040, group:'stellage', plan:0, verified:true},
+  {name:'Полиця 600-1000 (7011)', code:'SKU-058', category:'Полиці', stock:332, group:'stellage', plan:0, verified:true},
+  {name:'Полиця 600-1250 (7011)', code:'SKU-059', category:'Полиці', stock:61, group:'stellage', plan:0, verified:true},
+  {name:'Полиця 600-1330 (7011)', code:'SKU-060', category:'Полиці', stock:943, group:'stellage', plan:0, verified:true},
+  {name:'Полиця 600-660 (7011)', code:'SKU-061', category:'Полиці', stock:249, group:'stellage', plan:0, verified:true},
+  {name:'Полиця внутр. кута 500 (7011)', code:'SKU-062', category:'Полиці', stock:65, group:'stellage', plan:2, verified:true},
+  {name:'Полиця внутр. кута 600 (7011)', code:'SKU-063', category:'Полиці', stock:23, group:'stellage', plan:0, verified:true},
+  {name:'Полиця внутр. кута 700 (7011)', code:'SKU-064', category:'Полиці', stock:23, group:'stellage', plan:0, verified:true},
+  {name:'Полиця кондитерська 500-1330 7011', code:'SKU-065', category:'Полиці', stock:33, group:'stellage', plan:7, verified:true},
+  {name:'Полиця кондитерська 600-1330 7011', code:'SKU-066', category:'Полиці', stock:11, group:'stellage', plan:2, verified:true},
+  {name:'Полиця хлібна 1013х485х407 (7011)', code:'SKU-067', category:'Полиці', stock:0, group:'stellage', plan:4, verified:false},
+  {name:'Полиця хлібна 660х485х407 (7011)', code:'SKU-068', category:'Полиці', stock:0, group:'stellage', plan:2, verified:false},
+  {name:'Розподілювач кошика 300 (7011)', code:'SKU-069', category:'Аксесуари', stock:0, group:'stellage', plan:1, verified:false},
+  {name:'Розподілювач кошика 700 (7011)', code:'SKU-070', category:'Аксесуари', stock:0, group:'stellage', plan:2, verified:false},
+  {name:'Розподілювач кошика 800 (7011)', code:'SKU-071', category:'Аксесуари', stock:0, group:'stellage', plan:23, verified:false},
+  {name:'Стінка задня (внутр.кут) 450*1000 (7011)', code:'SKU-072', category:'Стінки задні', stock:46, group:'stellage', plan:2, verified:true},
+  {name:'Стінка задня 300*1000 (7011)', code:'SKU-073', category:'Стінки задні', stock:27, group:'stellage', plan:1, verified:true},
+  {name:'Стінка задня 300*660 (7011)', code:'SKU-074', category:'Стінки задні', stock:23, group:'stellage', plan:1, verified:true},
+  {name:'Стінка задня 450*1000 (7011)', code:'SKU-075', category:'Стінки задні', stock:1160, group:'stellage', plan:115, verified:true},
+  {name:'Стінка задня 450*1250 (7011)', code:'SKU-076', category:'Стінки задні', stock:58, group:'stellage', plan:10, verified:true},
+  {name:'Стінка задня 450*1330 (7011)', code:'SKU-077', category:'Стінки задні', stock:3896, group:'stellage', plan:248, verified:true},
+  {name:'Стінка задня 450*660 (7011)', code:'SKU-078', category:'Стінки задні', stock:480, group:'stellage', plan:105, verified:true},
+  {name:'Стінка задня перфорована 300*1000 (7011)', code:'SKU-079', category:'Стінки задні', stock:29, group:'stellage', plan:2, verified:true},
+  {name:'Стінка задня перфорована 300*1330 (7011)', code:'SKU-080', category:'Стінки задні', stock:36, group:'stellage', plan:1, verified:true},
+  {name:'Стінка задня перфорована 300*660 (7011)', code:'SKU-081', category:'Стінки задні', stock:9, group:'stellage', plan:6, verified:true},
+  {name:'КЛН ППЛ 400 Перегородка полиці  (7011 глянец)', code:'SKU-115', category:'Перегородки', stock:0, group:'stellage', plan:9, verified:false},
+  {name:'КЛН ППЛ 500 Перегородка полиці  (7011 глянец)', code:'SKU-116', category:'Перегородки', stock:0, group:'stellage', plan:12, verified:false},
+  {name:'КЛН ППЛ 600 Перегородка полиці  (7011 глянец)', code:'SKU-117', category:'Перегородки', stock:0, group:'stellage', plan:1, verified:false},
+  {name:'AT PRA 500 200 Перегородка акрилова', code:'SKU-130', category:'Перегородки', stock:0, group:'stellage', plan:50, verified:false},
+  {name:'AT PRA 600 200 Перегородка акрилова', code:'SKU-131', category:'Перегородки', stock:0, group:'stellage', plan:17, verified:false},
+  {name:'Стіл нержавіючий 1500', code:'SKU-142', category:'ТСО обладнання', stock:0, group:'tso', plan:0, verified:false},
+  {name:'Стелаж складський 1800*600*1200 збірний', code:'SKU-143', category:'ТСО обладнання', stock:0, group:'tso', plan:0, verified:false},
+  {name:'Стелаж 1000*600*1800 (4 полиці) «Інвентар»', code:'SKU-144', category:'ТСО обладнання', stock:0, group:'tso', plan:0, verified:false},
+  {name:'Контейнер хлібний (без лотків) 7011', code:'SKU-145', category:'ТСО обладнання', stock:0, group:'tso', plan:0, verified:false},
+  {name:'Стійка для пакетів з урною 7011', code:'SKU-146', category:'ТСО обладнання', stock:0, group:'tso', plan:0, verified:false},
+  {name:'Стійка для пакетів «Овочі» 7011', code:'SKU-147', category:'ТСО обладнання', stock:0, group:'tso', plan:0, verified:false},
+  {name:'Стійка для мнемосхеми 7011', code:'SKU-148', category:'ТСО обладнання', stock:0, group:'tso', plan:0, verified:false},
+  {name:'Стійка для купівельних пакетів 7011', code:'SKU-149', category:'ТСО обладнання', stock:0, group:'tso', plan:0, verified:false},
+  {name:'Камера схову нестандартна, 8-коміркова+1 для великогаб. поклажі 7011 (полікарб)', code:'SKU-150', category:'ТСО обладнання', stock:0, group:'tso', plan:0, verified:false},
+  {name:'Вставка до хлібного короба 1000х800 (7011)', code:'SKU-152', category:'Аксесуари', stock:0, group:'stellage', plan:1, verified:false},
+  {name:'Розпірка траверса 2700 (7011)', code:'SKU-168', category:'Траверси', stock:0, group:'palletka', plan:0, verified:false},
+  {name:'Розпірка траверса 1800 (7011)', code:'SKU-169', category:'Траверси', stock:0, group:'palletka', plan:0, verified:false},
+  {name:'Розпірка траверса 900 (7011)', code:'SKU-170', category:'Траверси', stock:0, group:'palletka', plan:0, verified:false},
+  {name:'Фіксатор траверси', code:'SKU-171', category:'Палетні аксесуари', stock:0, group:'palletka', plan:0, verified:false},
+  {name:'Полиця стелажа 2700-600 OSB-3 (15) (7011)', code:'SKU-172', category:'Палетні полиці', stock:0, group:'palletka', plan:0, verified:false},
+  {name:'Полиця стелажа 900-600 OSB-3 (15) (7011)', code:'SKU-174', category:'Палетні полиці', stock:0, group:'palletka', plan:0, verified:false},
+  {name:'Полиця стелажа 2700-800 OSB-3 (15) (7011)', code:'SKU-175', category:'Палетні полиці', stock:0, group:'palletka', plan:0, verified:false},
+  {name:'Полиця стелажа 900-800 OSB-3 (15) (7011)', code:'SKU-177', category:'Палетні полиці', stock:0, group:'palletka', plan:0, verified:false},
+  {name:'Перемичка полки під полку 600 (7011)', code:'SKU-181', category:'Перемички полки', stock:0, group:'palletka', plan:0, verified:false},
+  {name:'Перемичка полки під полку 800 (7011)', code:'SKU-182', category:'Перемички полки', stock:0, group:'palletka', plan:0, verified:false},
+  {name:'Рама стелажа палетного 2100 *600', code:'SKU-188', category:'Палетні рами', stock:0, group:'palletka', plan:0, verified:false},
+  {name:'Рама стелажа палетного 2100 *800', code:'SKU-189', category:'Палетні рами', stock:0, group:'palletka', plan:0, verified:false},
+  {name:'Полиця внутр. кута 400 (7011)', code:'SKU-190', category:'Полиці', stock:9, group:'stellage', plan:1, verified:true},
+  {name:'Кронштейн універсальний 400, в.н. 30/45 (7011)', code:'SKU-191', category:'Кронштейни', stock:0, group:'stellage', plan:2, verified:false},
+  {name:'Дер.декор.бар’єр 75*16*1330 8017-7011', code:'SKU-192', category:'Аксесуари', stock:0, group:'stellage', plan:1, verified:false},
+  {name:'Кошик сітч 1330 Ral 7011 (розмір 500)', code:'SKU-193', category:'Кошики', stock:0, group:'stellage', plan:2, verified:false},
+  {name:'Розподілювач кошика 500 (7011)', code:'SKU-194', category:'Перегородки', stock:0, group:'stellage', plan:6, verified:false},
+  {name:'Полиця стелажа 1800-600 OSB-3 (15) (7011)', code:'SKU-195', category:'Палетні полиці', stock:0, group:'palletka', plan:0, verified:false},
+  {name:'Полиця стелажа 1800-800 OSB-3 (15) (7011)', code:'SKU-196', category:'Палетні полиці', stock:0, group:'palletka', plan:0, verified:false},
+  {name:'Полиця стелажа 1800-1100 OSB-3 (15) (7011)', code:'SKU-197', category:'Палетні полиці', stock:0, group:'palletka', plan:0, verified:false},
+  {name:'Перемичка полки під полку 1100 (7011)', code:'SKU-198', category:'Перемички полки', stock:0, group:'palletka', plan:0, verified:false},
+  {name:'Рама стелажа палетного 2100 *1100', code:'SKU-199', category:'Палетні рами', stock:0, group:'palletka', plan:0, verified:false},
+  {name:'Полиця кондитерська 400-1330 7011', code:'SKU-216', category:'Полиці', stock:10, group:'stellage', plan:2, verified:true},
+  {name:'AT PRA 400 200 Перегородка акрилова', code:'SKU-217', category:'Перегородки', stock:0, group:'stellage', plan:17, verified:false},
+  {name:'Камера схову 5-коміркова 7011 (полікарб)', code:'SKU-237', category:'ТСО обладнання', stock:0, group:'tso', plan:0, verified:false},
+  {name:'Ручка до камери зберігання', code:'SKU-238', category:'ТСО обладнання', stock:0, group:'tso', plan:0, verified:false},
+  {name:'Хлібний лоток', code:'SKU-239', category:'ТСО обладнання', stock:0, group:'tso', plan:0, verified:false},
+  {name:'Підставка під полку для ваг, RAL 7011', code:'SKU-240', category:'ТСО обладнання', stock:0, group:'tso', plan:0, verified:false},
+  {name:'Полиця під ваги, RAL 7011', code:'SKU-241', category:'ТСО обладнання', stock:0, group:'tso', plan:0, verified:false},
+  {name:'Бар\'єр боковини акриловий 400 (7011)', code:'SKU-242', category:'Бар\'єри', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Бар’єр боковий 300 (7011)', code:'SKU-243', category:'Бар\'єри', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Короб хлібний 1013х530х508 (7011)', code:'SKU-244', category:'Короби', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Кошик сітч 1000 Ral 7011 (розмір 500)', code:'SKU-245', category:'Кошики', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Кошик сітч 1250 Ral 7011 (розмір 500)', code:'SKU-246', category:'Кошики', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Кошик сітч 1250 Ral 7011 (розмір 700)', code:'SKU-247', category:'Кошики', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Кошик сітч 660 Ral 7011 (розмір 400)', code:'SKU-248', category:'Кошики', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Кошик сітч 660 Ral 7011 (розмір 500)', code:'SKU-249', category:'Кошики', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Кронштейн універсальний 500, в.н. 30/45 (7011)', code:'SKU-250', category:'Кронштейни', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Нога двостороння стелажа над ларями (7011)', code:'SKU-251', category:'Ноги', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Нога одностороння 400 1930-100-1 (7011)', code:'SKU-252', category:'Ноги', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Нога одностороння стелажа над ларями (7011)', code:'SKU-253', category:'Ноги', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Нога стелажа палетного (2100)', code:'SKU-254', category:'Палетні ноги', stock:0, group:'palletka', plan:0, verified:false},
+  {name:'Перемичка рами горизонтальна стелажа 1100 (Розкіс горизонтальний) (7011)', code:'SKU-255', category:'Перемички рами', stock:0, group:'palletka', plan:0, verified:false},
+  {name:'Перемичка рами горизонтальна стелажа 600 (Розкіс горизонтальний) (7011)', code:'SKU-256', category:'Перемички рами', stock:0, group:'palletka', plan:0, verified:false},
+  {name:'Перемичка рами горизонтальна стелажа 800 (Розкіс горизонтальний) (7011)', code:'SKU-257', category:'Перемички рами', stock:0, group:'palletka', plan:0, verified:false},
+  {name:'Перемичка рами діагональна стелажа 1100 (Розкіс діагональний) (7011)', code:'SKU-258', category:'Перемички рами', stock:0, group:'palletka', plan:0, verified:false},
+  {name:'Перемичка рами діагональна стелажа 600 (Розкіс діагональний) (7011)', code:'SKU-259', category:'Перемички рами', stock:0, group:'palletka', plan:0, verified:false},
+  {name:'Перемичка рами діагональна стелажа 800 (Розкіс діагональний) (7011)', code:'SKU-260', category:'Перемички рами', stock:0, group:'palletka', plan:0, verified:false},
+  {name:'Полиця 200-1250 (7011)', code:'SKU-261', category:'Полиці', stock:36, group:'stellage', plan:0, verified:true},
+  {name:'Полиця 300-660 (9001)', code:'SKU-262', category:'Полиці', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Полиця 500-1250 (9001)', code:'SKU-263', category:'Полиці', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Полиця 500-1330 (9001)', code:'SKU-264', category:'Полиці', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Полиця 500-660 (9001)', code:'SKU-265', category:'Полиці', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Полиця зовн. кута 500 (7011)', code:'SKU-266', category:'Полиці', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Полиця зовн. кута 600 (7011)', code:'SKU-267', category:'Полиці', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Полиця зовн. кута 700 (7011)', code:'SKU-268', category:'Полиці', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Розподілювач кошика 400 (7011)', code:'SKU-269', category:'Аксесуари', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Стінка задня 300*1250 (7011)', code:'SKU-270', category:'Стінки задні', stock:8, group:'stellage', plan:0, verified:true},
+  {name:'Стінка задня 300*1330 (7011)', code:'SKU-271', category:'Стінки задні', stock:44, group:'stellage', plan:0, verified:true},
+  {name:'Стінка задня 300*660 (9001)', code:'SKU-272', category:'Стінки задні', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Стінка задня перфорована 300*1250 (7011)', code:'SKU-273', category:'Стінки задні', stock:4, group:'stellage', plan:0, verified:true},
+  {name:'Стінка задня 150*1000 (7011)', code:'SKU-274', category:'Стінки задні', stock:59, group:'stellage', plan:0, verified:true},
+  {name:'Стінка задня перфорована 450*1000 (7011)', code:'SKU-275', category:'Стінки задні', stock:3, group:'stellage', plan:0, verified:true},
+  {name:'Нога одностороння 200×500-1-60', code:'SKU-276', category:'Ноги', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Крючок без цінника 300', code:'SKU-277', category:'Аксесуари', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Нога трьохсторонн. 1560×500', code:'SKU-278', category:'Ноги', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Підставка ноги 500', code:'SKU-279', category:'Ноги', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Нога двостороння 1560×500', code:'SKU-280', category:'Ноги', stock:0, group:'stellage', plan:0, verified:false}
   ];
 
   function findProduct(name){ return products.find(function(p){ return p.name === name; }); }
@@ -585,7 +730,11 @@
       const inOrders = totalDemandForProduct(p.name);
       // остаток учитывает план на месяц как будущее поступление: склад + план - потребность в заказах
       const remaining = p.stock + (p.plan||0) - inOrders;
-      return '<tr><td>'+p.name+'</td><td data-label="Артикул">'+p.code+'</td><td data-label="Категория">'+p.category+'</td><td data-label="На складе">'+p.stock+'</td><td data-label="В заказах">'+inOrders+'</td><td data-label="Остаток">'+remaining+'</td>'+
+      const needsData = !p.verified;
+      const rowStyle = needsData ? ' style="background:rgba(220,53,69,0.10);"' : '';
+      const stockCellStyle = needsData ? ' style="color:var(--red); font-weight:700;"' : '';
+      const nameCell = needsData ? (p.name + ' <span style="color:var(--red); font-size:11px; font-weight:600;">— внести дані</span>') : p.name;
+      return '<tr'+rowStyle+'><td>'+nameCell+'</td><td data-label="Артикул">'+p.code+'</td><td data-label="Категория">'+p.category+'</td><td data-label="На складе"'+stockCellStyle+'>'+p.stock+'</td><td data-label="В заказах">'+inOrders+'</td><td data-label="Остаток">'+remaining+'</td>'+
         '<td data-label="План на месяц"><div class="stock-edit plan-edit"><input type="number" value="'+(p.plan||0)+'"><button class="btn">Сохранить</button></div></td>'+
         '<td data-label="Изменить"><div class="stock-edit"><input type="number" value="'+p.stock+'"><button class="btn">Сохранить</button></div></td></tr>';
     }).join('');
@@ -598,11 +747,12 @@
         if(isNaN(newStock) || newStock < 0) return;
         if(typeof db === 'undefined'){
           p.stock = newStock;
+          p.verified = true;
           renderWarehouse();
           return;
         }
         btn.disabled = true;
-        db.collection('products').doc(p.code).update({stock:newStock}).catch(function(err){
+        db.collection('products').doc(p.code).update({stock:newStock, verified:true}).catch(function(err){
           alert('Не вдалось зберегти: ' + err.message);
         }).finally(function(){
           btn.disabled = false;
@@ -629,219 +779,6 @@
   }
 
   let orders = [
-    {id:'ЛЬВІВ-1519', company:'Продукти-1519', city:'Львів', address:'Львів, вул. М. Пимоненка, 14а', created:'09.07.2026', due:'07.08.2026', statusClass:'production', statusLabel:'В производстве', progress:0, parts:[
-      {key:'stellage', label:'Стелажка', items:[
-      {name:'Нога одностороння 700 1778-100-1 (7011)', qty:5},
-      {name:'Нога одностороння 300 1930-100-1 (7011)', qty:5},
-      {name:'Нога одностороння 500 1930-100-1 (7011)', qty:31},
-      {name:'Нога двостороння 500 1930-100-2 (7011)', qty:3},
-      {name:'Нога одностороння 800 1930-100-1 (7011)', qty:41},
-      {name:'Нога двостороння 800 1930-100-2 (7011)', qty:23},
-      {name:'Стінка задня 300*1000 (7011)', qty:2},
-      {name:'Стінка задня 300*660 (7011)', qty:2},
-      {name:'Стінка задня 450*1000 (7011)', qty:134},
-      {name:'Стінка задня 450*1250 (7011)', qty:8},
-      {name:'Стінка задня 450*1330 (7011)', qty:164},
-      {name:'Стінка задня 450*660 (7011)', qty:94},
-      {name:'Стінка задня перфорована 300*1330 (7011)', qty:6},
-      {name:'Бар’єр полиці 1000 (7011)', qty:45},
-      {name:'Бар’єр полиці 1330 (7011)', qty:42},
-      {name:'Бар’єр полиці 660 (7011)', qty:46},
-      {name:'КЛН ППЛ 400 Перегородка полиці  (7011 глянец)', qty:46},
-      {name:'КЛН ППЛ 500 Перегородка полиці  (7011 глянец)', qty:24},
-      {name:'КЛН ППЛ 600 Перегородка полиці  (7011 глянец)', qty:6},
-      {name:'Гачок з цінником 300 (7011)', qty:20},
-      {name:'Кронштейн універсальний 300 (7011)', qty:34},
-      {name:'Кронштейн універсальний 400 (7011)', qty:238},
-      {name:'Кронштейн універсальний 500 (7011)', qty:526},
-      {name:'Кронштейн універсальний 600 (7011)', qty:138},
-      {name:'Полиця хлібна 1013х485х407 (7011)', qty:6},
-      {name:'Полиця хлібна 660х485х407 (7011)', qty:6},
-      {name:'Короб хлібний 1013х700х508 (7011)', qty:2},
-      {name:'Короб хлібний 660х700х508 (7011)', qty:2},
-      {name:'Бар\'єр акриловий 1330 (7011)', qty:12},
-      {name:'Полиця кондитерська 500-1330 7011', qty:9},
-      {name:'Полиця кондитерська 600-1330 7011', qty:3},
-      {name:'AT PRA 500 200 Перегородка акрилова', qty:63},
-      {name:'AT PRA 600 200 Перегородка акрилова', qty:21},
-      {name:'Кошик сітч 1000 Ral 7011 (розмір 800)', qty:3},
-      {name:'Кошик сітч 1330 Ral 7011 (розмір 800)', qty:7},
-      {name:'Кошик сітч 660 Ral 7011 (розмір 300)', qty:2},
-      {name:'Кошик сітч 1000 Ral 7011 (розмір 300)', qty:1},
-      {name:'Розподілювач кошика 300 (7011)', qty:6},
-      {name:'Розподілювач кошика 800 (7011)', qty:30},
-      {name:'Підсилення полиці ТЗ - 660', qty:21},
-      {name:'Підсилення полиці ТЗ - 1000', qty:30},
-      {name:'Підсилення полиці ТЗ - 1250', qty:2},
-      {name:'Підсилення полиці ТЗ - 1330', qty:41}
-      ]},
-      {key:'tso', label:'ТСО', items:[
-      {name:'Стіл нержавіючий 1500', qty:1},
-      {name:'Стелаж складський 1800*600*1200 збірний', qty:13},
-      {name:'Стелаж 1000*600*1800 (4 полиці) «Інвентар»', qty:1},
-      {name:'Контейнер хлібний (без лотків) 7011', qty:3},
-      {name:'Стійка для пакетів з урною 7011', qty:5},
-      {name:'Стійка для пакетів «Овочі» 7011', qty:5},
-      {name:'Стійка для мнемосхеми 7011', qty:1},
-      {name:'Стійка для купівельних пакетів 7011', qty:3},
-      {name:'Камера схову нестандартна, 8-коміркова+1 для великогаб. поклажі 7011 (полікарб)', qty:7}
-      ]}
-    ]},
-    {id:'ФАСТІВ-1493', company:'Продукти-1493', city:'Фастів', address:'м. Фастів, вул. Героїв Чорнобиля, 10', created:'07.07.2026', due:'25.07.2026', statusClass:'production', statusLabel:'В производстве', progress:0, parts:[
-      {key:'stellage', label:'Стелажка', items:[
-      {name:'Нога одностороння 700 1778-100-1 (7011)', qty:5},
-      {name:'Нога одностороння 500 1930-100-1 (7011)', qty:37},
-      {name:'Нога одностороння 800 1930-100-1 (7011)', qty:27},
-      {name:'Нога двостороння 800 1930-100-2 (7011)', qty:37},
-      {name:'Стінка задня 450*1000 (7011)', qty:149},
-      {name:'Стінка задня 450*1250 (7011)', qty:24},
-      {name:'Стінка задня 450*1330 (7011)', qty:236},
-      {name:'Стінка задня 450*660 (7011)', qty:103},
-      {name:'Стінка задня перфорована 300*660 (7011)', qty:24},
-      {name:'Гачок з цінником 300 (7011)', qty:48},
-      {name:'Кронштейн універсальний 500 (7011)', qty:546},
-      {name:'Кронштейн універсальний 600 (7011)', qty:128},
-      {name:'Підсилення полиці ТЗ - 1000', qty:39},
-      {name:'Підсилення полиці ТЗ - 660', qty:41},
-      {name:'Короб хлібний 1013х700х508 (7011)', qty:3},
-      {name:'Короб хлібний 660х700х508 (7011)', qty:1},
-      {name:'Короб хлібний 660х530х508 (7011)', qty:2},
-      {name:'Бар\'єр акриловий 1330 (7011)', qty:12},
-      {name:'Полиця кондитерська 500-1330 7011', qty:9},
-      {name:'Полиця кондитерська 600-1330 7011', qty:3},
-      {name:'AT PRA 500 200 Перегородка акрилова', qty:63},
-      {name:'AT PRA 600 200 Перегородка акрилова', qty:21},
-      {name:'Кошик сітч 1000 Ral 7011 (розмір 800)', qty:6},
-      {name:'Кошик сітч 1330 Ral 7011 (розмір 800)', qty:6},
-      {name:'Розподілювач кошика 800 (7011)', qty:36},
-      {name:'Підсилення полиці ТЗ - 1250', qty:5},
-      {name:'Підсилення полиці ТЗ - 1330', qty:56}
-      ]},
-      {key:'tso', label:'ТСО', items:[
-      {name:'Стіл нержавіючий 1500', qty:1},
-      {name:'Стелаж складський 1800*600*1200 збірний', qty:13},
-      {name:'Стелаж 1000*600*1800 (4 полиці) «Інвентар»', qty:1},
-      {name:'Контейнер хлібний (без лотків) 7011', qty:4},
-      {name:'Стійка для пакетів з урною 7011', qty:5},
-      {name:'Стійка для пакетів «Овочі» 7011', qty:5},
-      {name:'Стійка для мнемосхеми 7011', qty:1},
-      {name:'Стійка для купівельних пакетів 7011', qty:3},
-      {name:'Камера схову нестандартна, 8-коміркова+1 для великогаб. поклажі 7011 (полікарб)', qty:5}
-      ]}
-    ]},
-    {id:'СУПРУНІВКА-1517', company:'Продукти-1517', city:'Супрунівка', address:'село Супрунівка, вул. Київська, 9/11', created:'02.06.2026', due:'29.06.2026', statusClass:'production', statusLabel:'В производстве', progress:0, parts:[
-      {key:'stellage', label:'Стелажка', items:[
-      {name:'Нога одностороння 500 1930-100-1 (7011)', qty:18},
-      {name:'Нога одностороння 700 1930-100-1 (7011)', qty:4},
-      {name:'Нога одностороння 800 1930-100-1 (7011)', qty:26},
-      {name:'Нога двостороння 800 1930-100-2 (7011)', qty:13},
-      {name:'Стінка задня 450*1000 (7011)', qty:80},
-      {name:'Стінка задня 450*1330 (7011)', qty:196},
-      {name:'Стінка задня 450*660 (7011)', qty:96},
-      {name:'Стінка задня перфорована 300*1000 (7011)', qty:6},
-      {name:'Полиця внутр. кута 500 (7011)', qty:4},
-      {name:'Полиця внутр. кута 600 (7011)', qty:1},
-      {name:'Полиця внутр. кута 700 (7011)', qty:1},
-      {name:'Гачок з цінником 300 (7011)', qty:16},
-      {name:'Кронштейн універсальний 500 (7011)', qty:604},
-      {name:'Кронштейн універсальний 600 (7011)', qty:156},
-      {name:'Стінка задня (внутр.кут) 450*1000 (7011)', qty:4},
-      {name:'Підсилення полиці ТЗ - 1000', qty:32},
-      {name:'Короб хлібний 1013х800х508 (7011)', qty:4},
-      {name:'Вставка до хлібного короба 1000х800 (7011)', qty:4},
-      {name:'Бар\'єр акриловий 1330 (7011)', qty:12},
-      {name:'Полиця кондитерська 500-1330 7011', qty:9},
-      {name:'Полиця кондитерська 600-1330 7011', qty:3},
-      {name:'AT PRA 500 200 Перегородка акрилова', qty:63},
-      {name:'AT PRA 600 200 Перегородка акрилова', qty:21},
-      {name:'Кошик сітч 1330 Ral 7011 (розмір 800)', qty:5},
-      {name:'Кошик сітч 1000 Ral 7011 (розмір 700)', qty:2},
-      {name:'Кошик сітч 1330 Ral 7011 (розмір 700)', qty:1},
-      {name:'Розподілювач кошика 700 (7011)', qty:9},
-      {name:'Розподілювач кошика 800 (7011)', qty:15},
-      {name:'Підсилення полиці ТЗ - 660', qty:22},
-      {name:'Підсилення полиці ТЗ - 1330', qty:48}
-      ]},
-      {key:'tso', label:'ТСО', items:[
-      {name:'Стіл нержавіючий 1500', qty:1},
-      {name:'Стелаж складський 1800*600*1200 збірний', qty:15},
-      {name:'Стелаж 1000*600*1800 (4 полиці) «Інвентар»', qty:1},
-      {name:'Контейнер хлібний (без лотків) 7011', qty:3},
-      {name:'Стійка для пакетів з урною 7011', qty:5},
-      {name:'Стійка для пакетів «Овочі» 7011', qty:4},
-      {name:'Стійка для мнемосхеми 7011', qty:1},
-      {name:'Стійка для купівельних пакетів 7011', qty:3},
-      {name:'Камера схову нестандартна, 8-коміркова+1 для великогаб. поклажі 7011 (полікарб)', qty:6}
-      ]}
-    ]},
-    {id:'РІВНЕ-1500', company:'Продукти-1500', city:'Рівне', address:'м. Рівне, вул. Литовська, 93, група нежитлових приміщень 100', created:'12.03.2026', due:'10.04.2026', statusClass:'production', statusLabel:'В производстве', progress:0, parts:[
-      {key:'palletka', label:'Палетка', items:[
-      {name:'Розпірка траверса 2700 (7011)', qty:56},
-      {name:'Розпірка траверса 1800 (7011)', qty:44},
-      {name:'Розпірка траверса 900 (7011)', qty:44},
-      {name:'Фіксатор траверси', qty:288},
-      {name:'Полиця стелажа 2700-600 OSB-3 (15) (7011)', qty:4},
-      {name:'Полиця стелажа 900-600 OSB-3 (15) (7011)', qty:4},
-      {name:'Полиця стелажа 2700-800 OSB-3 (15) (7011)', qty:24},
-      {name:'Полиця стелажа 900-800 OSB-3 (15) (7011)', qty:18},
-      {name:'Перемичка полки під полку 600 (7011)', qty:52},
-      {name:'Перемичка полки під полку 800 (7011)', qty:288},
-      {name:'Рама стелажа палетного 2100 *600', qty:4},
-      {name:'Рама стелажа палетного 2100 *800', qty:26}
-      ]}
-    ]},
-    {id:'ПОЛОННЕ-1499', company:'Продукти-1499', city:'Полонне', address:'м. Полонне, вул. Шолом-Алейхема, 21', created:'23.03.2026', due:'03.04.2026', statusClass:'production', statusLabel:'В производстве', progress:0, parts:[
-      {key:'stellage', label:'Стелажка', items:[
-      {name:'Нога одностороння 500 1930-100-1 (7011)', qty:72},
-      {name:'Нога одностороння 700 1930-100-1 (7011)', qty:2},
-      {name:'Нога одностороння 800 1930-100-1 (7011)', qty:42},
-      {name:'Нога двостороння 800 1930-100-2 (7011)', qty:28},
-      {name:'Стінка задня 450*1000 (7011)', qty:100},
-      {name:'Стінка задня 450*1250 (7011)', qty:8},
-      {name:'Стінка задня 450*1330 (7011)', qty:368},
-      {name:'Стінка задня 450*660 (7011)', qty:104},
-      {name:'Стінка задня перфорована 300*660 (7011)', qty:6},
-      {name:'Полиця внутр. кута 400 (7011)', qty:4},
-      {name:'Полиця внутр. кута 500 (7011)', qty:6},
-      {name:'Полиця внутр. кута 600 (7011)', qty:1},
-      {name:'Полиця внутр. кута 700 (7011)', qty:1},
-      {name:'Гачок з цінником 300 (7011)', qty:12},
-      {name:'Кронштейн універсальний 400, в.н. 30/45 (7011)', qty:8},
-      {name:'Кронштейн універсальний 500 (7011)', qty:630},
-      {name:'Кронштейн універсальний 600 (7011)', qty:162},
-      {name:'Стінка задня (внутр.кут) 450*1000 (7011)', qty:8},
-      {name:'Дер.декор.бар’єр 75*16*1330 8017-7011', qty:6},
-      {name:'Підсилення полиці ТЗ - 1000', qty:38},
-      {name:'Короб хлібний 1013х700х508 (7011)', qty:5},
-      {name:'Бар\'єр акриловий 1330 (7011)', qty:12},
-      {name:'Полиця кондитерська 500-1330 7011', qty:9},
-      {name:'Полиця кондитерська 600-1330 7011', qty:3},
-      {name:'AT PRA 500 200 Перегородка акрилова', qty:63},
-      {name:'AT PRA 600 200 Перегородка акрилова', qty:21},
-      {name:'Кошик сітч 1330 Ral 7011 (розмір 500)', qty:10},
-      {name:'Розподілювач кошика 500 (7011)', qty:30},
-      {name:'Підсилення полиці ТЗ - 660', qty:26},
-      {name:'Підсилення полиці ТЗ - 1250', qty:2},
-      {name:'Підсилення полиці ТЗ - 1330', qty:89}
-      ]},
-      {key:'palletka', label:'Палетка', items:[
-      {name:'Розпірка траверса 2700 (7011)', qty:30},
-      {name:'Розпірка траверса 1800 (7011)', qty:56},
-      {name:'Розпірка траверса 900 (7011)', qty:8},
-      {name:'Фіксатор траверси', qty:188},
-      {name:'Полиця стелажа 1800-600 OSB-3 (15) (7011)', qty:4},
-      {name:'Полиця стелажа 900-600 OSB-3 (15) (7011)', qty:4},
-      {name:'Полиця стелажа 2700-800 OSB-3 (15) (7011)', qty:15},
-      {name:'Полиця стелажа 1800-800 OSB-3 (15) (7011)', qty:12},
-      {name:'Полиця стелажа 1800-1100 OSB-3 (15) (7011)', qty:12},
-      {name:'Перемичка полки під полку 600 (7011)', qty:40},
-      {name:'Перемичка полки під полку 800 (7011)', qty:207},
-      {name:'Перемичка полки під полку 1100 (7011)', qty:72},
-      {name:'Рама стелажа палетного 2100 *600', qty:4},
-      {name:'Рама стелажа палетного 2100 *800', qty:15},
-      {name:'Рама стелажа палетного 2100 *1100', qty:6}
-      ]}
-    ]},
     {id:'ЗООМАГ-85', company:'Зоомаг', city:'', address:'ФОП Єрмолаєва Яна (адреса доставки не вказана в документі)', created:'05.08.2026', due:'уточнюється', statusClass:'production', statusLabel:'В производстве', progress:0, label:'Заказ зоомаг', parts:[
       {key:'stellage', label:'Стелажка', items:[
       {name:'Бар\'єр передній акрил 1008*172мм', qty:7},
@@ -917,6 +854,31 @@
       {name:'Підставка під полку для ваг, RAL 7011', qty:0},
       {name:'Полиця під ваги, RAL 7011', qty:0}
       ]}
+    ]},
+    {id:'ДОБРОБУТ-1', company:'Добробут', city:'', address:'адреса доставки не вказана в документі', created:'14.08.2026', due:'уточнюється', statusClass:'production', statusLabel:'В производстве', progress:0, label:'Заказ Добробут', parts:[
+      {key:'stellage', label:'Стелажка', items:[
+      {name:'Нога одностороння 200×500-1-60', qty:64},
+      {name:'Стінка задня 150*1000 (7011)', qty:57},
+      {name:'Стінка задня 450*1000 (7011)', qty:248},
+      {name:'Стінка задня перфорована 450*1000 (7011)', qty:60},
+      {name:'Полиця 500-1000 (7011)', qty:114},
+      {name:'Полиця 400-1000 (7011)', qty:245},
+      {name:'Кронштейн універсальний 500 (7011)', qty:114},
+      {name:'Кронштейн універсальний 400 (7011)', qty:490},
+      {name:'Крючок без цінника 300', qty:2000},
+      {name:'Бар’єр боковий 400 (7011)', qty:40},
+      {name:'Бар’єр полиці 1000 (7011)', qty:250},
+      {name:'Нога трьохсторонн. 1560×500', qty:3},
+      {name:'Підставка ноги 500', qty:3},
+      {name:'Нога двостороння 1560×500', qty:12},
+      {name:'Стінка задня 150*1000 (7011)', qty:24},
+      {name:'Стінка задня 450*1000 (7011)', qty:72},
+      {name:'Полиця 500-1000 (7011)', qty:24},
+      {name:'Полиця 400-1000 (7011)', qty:120},
+      {name:'Кронштейн універсальний 400 (7011)', qty:276},
+      {name:'Полиця внутр. кута 500 (7011)', qty:6},
+      {name:'Полиця внутр. кута 400 (7011)', qty:18}
+      ]}
     ]}
   ];
 
@@ -928,20 +890,28 @@
     return orders.find(function(o){ return o.id === id; });
   }
 
+  // «ДД.ММ.ГГГГ» -> сравнимое число, чтобы сортировать заказы по дате создания
+  function parseRuDate(s){
+    const parts = (s||'').split('.');
+    if(parts.length !== 3) return 0;
+    return new Date(+parts[2], +parts[1]-1, +parts[0]).getTime();
+  }
+
   function renderOrders(){
     const body = document.getElementById('ordersRows');
-    body.innerHTML = orders.map(function(o, i){
-      return '<tr class="rowhover" data-idx="'+i+'"><td><span class="company-chip">'+orderName(o)+'</span></td><td data-label="Адрес">'+o.address+'</td><td data-label="Дата создания">'+o.created+'</td><td data-label="Срок">'+o.due+'</td><td data-label="Статус"><span class="badge '+o.statusClass+'">'+o.statusLabel+'</span></td></tr>';
+    const sorted = orders.slice().sort(function(a,b){ return parseRuDate(a.created) - parseRuDate(b.created); });
+    body.innerHTML = sorted.map(function(o){
+      return '<tr class="rowhover" data-id="'+o.id+'"><td><span class="company-chip">'+orderName(o)+'</span></td><td data-label="Адрес">'+o.address+'</td><td data-label="Дата создания">'+o.created+'</td><td data-label="Срок">'+o.due+'</td><td data-label="Статус"><span class="badge '+o.statusClass+'">'+o.statusLabel+'</span></td></tr>';
     }).join('');
     body.querySelectorAll('tr').forEach(function(tr){
-      tr.addEventListener('click', function(){ openOrderModal(orders[+tr.dataset.idx]); });
+      tr.addEventListener('click', function(){ openOrderModal(findOrder(tr.dataset.id)); });
     });
   }
 
   let currentModalOrder = null;
   let currentModalPartKey = null;
 
-  // все позиции текущего заказа (по всем частям), которые реально ведутся на складе
+  // все позиции текущего заказа (по всем частям), которые есть на складе (в каталоге товаров)
   function getTrackedItems(order){
     const all = order.parts ? order.parts.reduce(function(acc,p){ return acc.concat(p.items); }, []) : (order.items || []);
     return all.filter(function(it){ return !!findProduct(it.name); });
@@ -1248,11 +1218,276 @@
     }).join('');
   }
 
+  // минимальный неснижаемый запас: если на складе меньше — план добирает разницу сверх среднего
+  const PLAN_RESERVE_TARGET = 100;
+
+  // фіксоване середнє по 5 магазинах АТБ (Львів, Фастів, Супрунівка, Полонне, Черкаси) на кожен товар —
+  // зафіксовано один раз, не залежить від того, які саме заказы зараз є у списку заказів
+  // фіксоване середнє по 5 магазинах АТБ (Львів, Фастів, Супрунівка, Полонне, Черкаси) на кожен товар —
+  // зафіксовано один раз, не залежить від того, які саме заказы зараз є у списку заказів
+  const ATB_AVG_BY_PRODUCT = {
+    'Бар\'єр акриловий 1330 (7011)': 12,
+    'Бар\'єр боковини акриловий 500 (7011)': 0,
+    'Бар\'єр боковини акриловий 600 (7011)': 0,
+    'Бар’єр боковий 400 (7011)': 0,
+    'Бар’єр боковий 500 (7011)': 0,
+    'Бар’єр боковий 600 (7011)': 0,
+    'Бар’єр полиці 1000 (7011)': 17.2,
+    'Бар’єр полиці 1250 (7011)': 2.2,
+    'Бар’єр полиці 1330 (7011)': 18.6,
+    'Бар’єр полиці 660 (7011)': 18.8,
+    'Вставка до хлібного кошика 1000 (7011)': 0.4,
+    'Вставка до хлібного кошика 660 (7011)': 0,
+    'Гачок з цінником 300 (7011)': 22.4,
+    'Короб хлібний 1013х700х508 (7011)': 2.4,
+    'Короб хлібний 1013х800х508 (7011)': 1.2,
+    'Короб хлібний 660х530х508 (7011)': 0.4,
+    'Короб хлібний 660х700х508 (7011)': 0.8,
+    'Короб хлібний 660х800х508 (7011)': 0,
+    'Кошик сітч 1000 Ral 7011 (розмір 300)': 0.2,
+    'Кошик сітч 1000 Ral 7011 (розмір 700)': 0.4,
+    'Кошик сітч 1000 Ral 7011 (розмір 800)': 2,
+    'Кошик сітч 1250 Ral 7011 (розмір 800)': 0,
+    'Кошик сітч 1330 Ral 7011 (розмір 700)': 0.2,
+    'Кошик сітч 1330 Ral 7011 (розмір 800)': 5.8,
+    'Кошик сітч 660 Ral 7011 (розмір 300)': 0.4,
+    'Кошик сітч 660 Ral 7011 (розмір 700)': 0,
+    'Кошик сітч 660 Ral 7011 (розмір 800)': 0,
+    'Кронштейн універсальний 300 (7011)': 6.8,
+    'Кронштейн універсальний 400 (7011)': 95.6,
+    'Кронштейн універсальний 500 (7011)': 554,
+    'Кронштейн універсальний 600 (7011)': 137.2,
+    'Нога двостороння 500 1930-100-2 (7011)': 0.6,
+    'Нога двостороння 800 1930-100-2 (7011)': 24.6,
+    'Нога одностороння 300 1930-100-1 (7011)': 1,
+    'Нога одностороння 500 1930-100-1 (7011)': 38.8,
+    'Нога одностороння 700 1778-100-1 (7011)': 2.8,
+    'Нога одностороння 700 1930-100-1 (7011)': 1.2,
+    'Нога одностороння 800 1930-100-1 (7011)': 35,
+    'Підсилення полиці ТЗ - 1000': 33.4,
+    'Підсилення полиці ТЗ - 1250': 2.2,
+    'Підсилення полиці ТЗ - 1330': 61,
+    'Підсилення полиці ТЗ - 660': 28.2,
+    'Полиця 200-1000 (7011)': 0,
+    'Полиця 200-1330 (7011)': 0,
+    'Полиця 200-660 (7011)': 0,
+    'Полиця 300-1000 (7011)': 0,
+    'Полиця 300-1250 (7011)': 0,
+    'Полиця 300-1330 (7011)': 0,
+    'Полиця 300-660 (7011)': 0,
+    'Полиця 400-1000 (7011)': 0,
+    'Полиця 400-1250 (7011)': 0,
+    'Полиця 400-1330 (7011)': 0,
+    'Полиця 400-660 (7011)': 0,
+    'Полиця 500-1000 (7011)': 0,
+    'Полиця 500-1250 (7011)': 0,
+    'Полиця 500-1330 (7011)': 0,
+    'Полиця 500-660 (7011)': 0,
+    'Полиця 600-1000 (7011)': 0,
+    'Полиця 600-1250 (7011)': 0,
+    'Полиця 600-1330 (7011)': 0,
+    'Полиця 600-660 (7011)': 0,
+    'Полиця внутр. кута 500 (7011)': 2,
+    'Полиця внутр. кута 600 (7011)': 0.4,
+    'Полиця внутр. кута 700 (7011)': 0.4,
+    'Полиця кондитерська 500-1330 7011': 7.2,
+    'Полиця кондитерська 600-1330 7011': 2.4,
+    'Полиця хлібна 1013х485х407 (7011)': 3.6,
+    'Полиця хлібна 660х485х407 (7011)': 1.8,
+    'Розподілювач кошика 300 (7011)': 1.2,
+    'Розподілювач кошика 700 (7011)': 1.8,
+    'Розподілювач кошика 800 (7011)': 23.4,
+    'Стінка задня (внутр.кут) 450*1000 (7011)': 2.4,
+    'Стінка задня 300*1000 (7011)': 0.8,
+    'Стінка задня 300*660 (7011)': 0.6,
+    'Стінка задня 450*1000 (7011)': 115.4,
+    'Стінка задня 450*1250 (7011)': 9.6,
+    'Стінка задня 450*1330 (7011)': 248,
+    'Стінка задня 450*660 (7011)': 104.8,
+    'Стінка задня перфорована 300*1000 (7011)': 2.4,
+    'Стінка задня перфорована 300*1330 (7011)': 1.2,
+    'Стінка задня перфорована 300*660 (7011)': 6,
+    'КЛН ППЛ 400 Перегородка полиці  (7011 глянец)': 9.2,
+    'КЛН ППЛ 500 Перегородка полиці  (7011 глянец)': 12.4,
+    'КЛН ППЛ 600 Перегородка полиці  (7011 глянец)': 1.2,
+    'AT PRA 500 200 Перегородка акрилова': 50.4,
+    'AT PRA 600 200 Перегородка акрилова': 16.8,
+    'Стіл нержавіючий 1500': 0,
+    'Стелаж складський 1800*600*1200 збірний': 0,
+    'Стелаж 1000*600*1800 (4 полиці) «Інвентар»': 0,
+    'Контейнер хлібний (без лотків) 7011': 0,
+    'Стійка для пакетів з урною 7011': 0,
+    'Стійка для пакетів «Овочі» 7011': 0,
+    'Стійка для мнемосхеми 7011': 0,
+    'Стійка для купівельних пакетів 7011': 0,
+    'Камера схову нестандартна, 8-коміркова+1 для великогаб. поклажі 7011 (полікарб)': 0,
+    'Вставка до хлібного короба 1000х800 (7011)': 0.8,
+    'Розпірка траверса 2700 (7011)': 0,
+    'Розпірка траверса 1800 (7011)': 0,
+    'Розпірка траверса 900 (7011)': 0,
+    'Фіксатор траверси': 0,
+    'Полиця стелажа 2700-600 OSB-3 (15) (7011)': 0,
+    'Полиця стелажа 900-600 OSB-3 (15) (7011)': 0,
+    'Полиця стелажа 2700-800 OSB-3 (15) (7011)': 0,
+    'Полиця стелажа 900-800 OSB-3 (15) (7011)': 0,
+    'Перемичка полки під полку 600 (7011)': 0,
+    'Перемичка полки під полку 800 (7011)': 0,
+    'Рама стелажа палетного 2100 *600': 0,
+    'Рама стелажа палетного 2100 *800': 0,
+    'Полиця внутр. кута 400 (7011)': 0.8,
+    'Кронштейн універсальний 400, в.н. 30/45 (7011)': 1.6,
+    'Дер.декор.бар’єр 75*16*1330 8017-7011': 1.2,
+    'Кошик сітч 1330 Ral 7011 (розмір 500)': 2,
+    'Розподілювач кошика 500 (7011)': 6,
+    'Полиця стелажа 1800-600 OSB-3 (15) (7011)': 0,
+    'Полиця стелажа 1800-800 OSB-3 (15) (7011)': 0,
+    'Полиця стелажа 1800-1100 OSB-3 (15) (7011)': 0,
+    'Перемичка полки під полку 1100 (7011)': 0,
+    'Рама стелажа палетного 2100 *1100': 0,
+    'Полиця кондитерська 400-1330 7011': 2.4,
+    'AT PRA 400 200 Перегородка акрилова': 16.8,
+    'Камера схову 5-коміркова 7011 (полікарб)': 0,
+    'Ручка до камери зберігання': 0,
+    'Хлібний лоток': 0,
+    'Підставка під полку для ваг, RAL 7011': 0,
+    'Полиця під ваги, RAL 7011': 0,
+    'Бар\'єр боковини акриловий 400 (7011)': 0,
+    'Бар’єр боковий 300 (7011)': 0,
+    'Короб хлібний 1013х530х508 (7011)': 0,
+    'Кошик сітч 1000 Ral 7011 (розмір 500)': 0,
+    'Кошик сітч 1250 Ral 7011 (розмір 500)': 0,
+    'Кошик сітч 1250 Ral 7011 (розмір 700)': 0,
+    'Кошик сітч 660 Ral 7011 (розмір 400)': 0,
+    'Кошик сітч 660 Ral 7011 (розмір 500)': 0,
+    'Кронштейн універсальний 500, в.н. 30/45 (7011)': 0,
+    'Нога двостороння стелажа над ларями (7011)': 0,
+    'Нога одностороння 400 1930-100-1 (7011)': 0,
+    'Нога одностороння стелажа над ларями (7011)': 0,
+    'Нога стелажа палетного (2100)': 0,
+    'Перемичка рами горизонтальна стелажа 1100 (Розкіс горизонтальний) (7011)': 0,
+    'Перемичка рами горизонтальна стелажа 600 (Розкіс горизонтальний) (7011)': 0,
+    'Перемичка рами горизонтальна стелажа 800 (Розкіс горизонтальний) (7011)': 0,
+    'Перемичка рами діагональна стелажа 1100 (Розкіс діагональний) (7011)': 0,
+    'Перемичка рами діагональна стелажа 600 (Розкіс діагональний) (7011)': 0,
+    'Перемичка рами діагональна стелажа 800 (Розкіс діагональний) (7011)': 0,
+    'Полиця 200-1250 (7011)': 0,
+    'Полиця 300-660 (9001)': 0,
+    'Полиця 500-1250 (9001)': 0,
+    'Полиця 500-1330 (9001)': 0,
+    'Полиця 500-660 (9001)': 0,
+    'Полиця зовн. кута 500 (7011)': 0,
+    'Полиця зовн. кута 600 (7011)': 0,
+    'Полиця зовн. кута 700 (7011)': 0,
+    'Розподілювач кошика 400 (7011)': 0,
+    'Стінка задня 300*1250 (7011)': 0,
+    'Стінка задня 300*1330 (7011)': 0,
+    'Стінка задня 300*660 (9001)': 0,
+    'Стінка задня перфорована 300*1250 (7011)': 0,
+    'Стінка задня 150*1000 (7011)': 0,
+    'Стінка задня перфорована 450*1000 (7011)': 0
+  };
+
+  function computePlanRow(p){
+    const avg = ATB_AVG_BY_PRODUCT.hasOwnProperty(p.name) ? ATB_AVG_BY_PRODUCT[p.name] : 0;
+    // доборка зверху фіксованого середнього — тільки для товарів з підтвердженим (реальним) залишком,
+    // і тільки якщо реальний попит по поточних заказах перевищує склад + середнє
+    const demand = p.verified ? totalDemandForProduct(p.name) : 0;
+    const topUp = p.verified ? Math.max(0, demand - p.stock - avg) : 0;
+    const newPlan = Math.round(avg) + Math.round(topUp);
+
+    return {name:p.name, category:p.category, stock:p.stock, newPlan:newPlan, currentPlan:p.plan||0};
+  }
+
+  function renderPlanning(){
+    const rows = products.map(computePlanRow);
+    document.getElementById('planningRows').innerHTML = rows.map(function(r){
+      return '<tr><td>'+r.name+'</td><td data-label="Категория">'+r.category+'</td>'+
+        '<td data-label="На складі">'+r.stock+'</td>'+
+        '<td data-label="План на місяць">'+r.newPlan+'</td></tr>';
+    }).join('');
+  }
+
+  async function exportPlanToExcel(){
+    if(typeof ExcelJS === 'undefined'){
+      alert('Не удалось загрузить модуль Excel — нужен интернет. Попробуйте ещё раз при подключении к сети.');
+      return;
+    }
+    const thinBorder = { top:{style:'thin'}, left:{style:'thin'}, bottom:{style:'thin'}, right:{style:'thin'} };
+    const rows = products.map(computePlanRow);
+
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('План на місяць');
+    const cols = ['Товар', 'План на місяць'];
+
+    const headerRow = ws.getRow(1);
+    cols.forEach(function(c, i){ headerRow.getCell(i+1).value = c; });
+    headerRow.eachCell(function(cell){
+      cell.font = { bold:true };
+      cell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFD9D9D9'} };
+      cell.border = thinBorder;
+      cell.alignment = { vertical:'middle', horizontal:'center', wrapText:true };
+    });
+
+    rows.forEach(function(r, idx){
+      const row = ws.getRow(idx + 2);
+      row.getCell(1).value = r.name;
+      row.getCell(2).value = r.newPlan;
+      for(let c=1; c<=cols.length; c++){ row.getCell(c).border = thinBorder; }
+    });
+
+    ws.columns = [{width:60},{width:16}];
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {type:'application/octet-stream'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'План_на_місяць.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  const exportPlanBtn = document.getElementById('exportPlanBtn');
+  if(exportPlanBtn){
+    exportPlanBtn.addEventListener('click', function(){ exportPlanToExcel(); });
+  }
+
+  const applyPlanBtn = document.getElementById('applyPlanBtn');
+  if(applyPlanBtn){
+    applyPlanBtn.addEventListener('click', function(){
+      const rows = products.map(computePlanRow).filter(function(r){ return r.newPlan !== r.currentPlan; });
+      if(!rows.length){ alert('Розрахований план уже співпадає з поточним по всіх товарах.'); return; }
+      applyPlanBtn.disabled = true;
+      if(typeof db === 'undefined'){
+        rows.forEach(function(r){
+          const p = products.find(function(pp){ return pp.name === r.name; });
+          if(p) p.plan = r.newPlan;
+        });
+        applyPlanBtn.disabled = false;
+        renderAll();
+        return;
+      }
+      const batch = db.batch();
+      rows.forEach(function(r){
+        const p = products.find(function(pp){ return pp.name === r.name; });
+        if(p) batch.update(db.collection('products').doc(p.code), {plan:r.newPlan});
+      });
+      batch.commit().catch(function(err){
+        alert('Не вдалось зберегти план: ' + err.message);
+      }).finally(function(){
+        applyPlanBtn.disabled = false;
+      });
+    });
+  }
+
   function renderAll(){
     renderWarehouseFilter();
     renderWarehouse();
     renderOrders();
     renderAnalysis();
+    renderPlanning();
     renderShipping();
     renderDashboard();
     if(currentModalOrder){
