@@ -333,6 +333,7 @@
         <div class="modal-sub" id="modalOrderSub"></div>
       </div>
       <div style="display:flex; align-items:center; gap:10px;">
+        <button class="btn" id="modalShippedBtn" title="Списати зі складу і прибрати заказ" style="background:var(--red); color:#fff; border-color:var(--red);">✓ Відвантажено</button>
         <button class="btn" id="modalExportBtn" title="Скачать Excel для печати">⭳ Excel</button>
         <button class="modal-close" id="modalCloseBtn">&times;</button>
       </div>
@@ -817,10 +818,27 @@
       {name:'Бар’єр полиці 1250 (7011)', qty:11},
       {name:'Бар’єр полиці 1330 (7011)', qty:51},
       {name:'Бар’єр полиці 660 (7011)', qty:48},
+      {name:'Підсилення полиці ТЗ - 1000', qty:2},
+      {name:'Підсилення полиці ТЗ - 660', qty:1},
+      {name:'Підсилення полиці ТЗ - 1000', qty:27},
+      {name:'Підсилення полиці ТЗ - 1250', qty:2},
+      {name:'Підсилення полиці ТЗ - 1330', qty:65},
+      {name:'Підсилення полиці ТЗ - 660', qty:11},
+      {name:'Підсилення полиці ТЗ - 1000', qty:5},
+      {name:'Підсилення полиці ТЗ - 1330', qty:6},
+      {name:'Підсилення полиці ТЗ - 660', qty:105},
+      {name:'Підсилення полиці ТЗ - 1000', qty:123},
+      {name:'Підсилення полиці ТЗ - 1250', qty:11},
+      {name:'Підсилення полиці ТЗ - 1330', qty:307},
+      {name:'Підсилення полиці ТЗ - 660', qty:74},
+      {name:'Підсилення полиці ТЗ - 1000', qty:25},
+      {name:'Підсилення полиці ТЗ - 1250', qty:2},
+      {name:'Підсилення полиці ТЗ - 1330', qty:63},
+      {name:'Підсилення полиці ТЗ - 660', qty:11},
       {name:'КЛН ППЛ 500 Перегородка полиці  (7011 глянец)', qty:38},
       {name:'Гачок з цінником 300 (7011)', qty:16},
-      {name:'Кронштейн універсальний 400 (7011)', qty:240},
-      {name:'Кронштейн універсальний 500 (7011)', qty:464},
+      {name:'Кронштейн універсальний 400 (7011)', qty:244},
+      {name:'Кронштейн універсальний 500 (7011)', qty:466},
       {name:'Кронштейн універсальний 600 (7011)', qty:102},
       {name:'Полиця хлібна 1013х485х407 (7011)', qty:12},
       {name:'Полиця хлібна 660х485х407 (7011)', qty:3},
@@ -837,7 +855,7 @@
       {name:'Підсилення полиці ТЗ - 660', qty:31},
       {name:'Підсилення полиці ТЗ - 1000', qty:28},
       {name:'Підсилення полиці ТЗ - 1250', qty:2},
-      {name:'Підсилення полиці ТЗ - 1330', qty:71}
+      {name:'Підсилення полиці ТЗ - 1330', qty:68}
       ]},
       {key:'tso', label:'ТСО', items:[
       {name:'Стіл нержавіючий 1500', qty:1},
@@ -1107,6 +1125,47 @@
     return all.filter(function(it){ return !!findProduct(it.name); });
   }
 
+  // отвантаження заказу: списує зі складу все позиції заказу (по товарних кодах, з підсумовуванням
+  // дублюючих рядків) і прибирає сам заказ зі списку — товар "поїхав", лишку на складі стає менше
+  function markOrderShipped(order){
+    if(!confirm('Списати зі складу товари цього заказу і прибрати заказ "' + orderName(order) + '" зі списку? Дію не можна скасувати.')) return;
+    const all = order.parts ? order.parts.reduce(function(acc,p){ return acc.concat(p.items); }, []) : (order.items || []);
+    const deduct = {};
+    all.forEach(function(it){
+      const p = findProduct(it.name);
+      if(!p) return;
+      deduct[p.code] = (deduct[p.code] || 0) + it.qty;
+    });
+
+    if(typeof db === 'undefined'){
+      Object.keys(deduct).forEach(function(code){
+        const p = products.find(function(pp){ return pp.code === code; });
+        if(p) p.stock = p.stock - deduct[code];
+      });
+      orders = orders.filter(function(o){ return o.id !== order.id; });
+      document.getElementById('orderModalOverlay').classList.remove('open');
+      renderAll();
+      return;
+    }
+
+    const btn = document.getElementById('modalShippedBtn');
+    if(btn) btn.disabled = true;
+    const batch = db.batch();
+    Object.keys(deduct).forEach(function(code){
+      const p = products.find(function(pp){ return pp.code === code; });
+      if(!p) return;
+      batch.update(db.collection('products').doc(code), {stock: p.stock - deduct[code]});
+    });
+    batch.delete(db.collection('orders').doc(order.id));
+    batch.commit().then(function(){
+      document.getElementById('orderModalOverlay').classList.remove('open');
+    }).catch(function(err){
+      alert('Не вдалось провести відвантаження: ' + err.message);
+    }).finally(function(){
+      if(btn) btn.disabled = false;
+    });
+  }
+
   function openOrderModal(order){
     currentModalOrder = order;
     document.getElementById('modalOrderTitle').innerHTML = '<span class="company-chip">' + orderName(order) + '</span>';
@@ -1293,6 +1352,10 @@
 
   document.getElementById('modalExportBtn').addEventListener('click', function(){
     if(currentModalOrder) exportOrderToExcel(currentModalOrder, currentModalPartKey);
+  });
+
+  document.getElementById('modalShippedBtn').addEventListener('click', function(){
+    if(currentModalOrder) markOrderShipped(currentModalOrder);
   });
 
   document.getElementById('modalCloseBtn').addEventListener('click', function(){
