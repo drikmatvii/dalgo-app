@@ -274,6 +274,9 @@
       <div class="page-title">Склад</div>
       <div class="page-sub">Остатки готовой продукции</div>
       <div class="part-switcher" id="warehouseFilter" style="margin-bottom:14px;"></div>
+      <div style="margin-bottom:12px; display:flex; gap:10px;">
+        <button class="btn" id="exportWarehouseBtn">⭳ Excel</button>
+      </div>
       <div class="card" style="padding:0;">
         <table>
           <tr><th>Название</th><th>Артикул</th><th>Категория</th><th>На складе</th><th>В заказах</th><th>Остаток</th><th>План на месяц</th><th></th></tr>
@@ -560,7 +563,13 @@
     // зроблені прямо в застосунку, за ~20 хв (при переперепідключенні onSnapshot) відкатувалися
     // назад до застарілих значень з коду. Прибрано — база тепер джерело правди для вже
     // існуючих документів, код лише додає те, чого в базі ще немає (syncNewLocalItemsToFirestore).
-    fullOrdersRepair();
+    //
+    // fullOrdersRepair() з тієї ж причини теж прибрано: вона видаляла з бази будь-який заказ,
+    // якого немає в МІСЦЕВОМУ коді цієї вкладки/пристрою. Якщо десь відкрита стара вкладка
+    // або застарілий кеш сторінки (де новий заказ ще не доданий в код), саме вона при вході
+    // видаляла щойно доданий заказ з бази — інші пристрої це бачили як "заказ то з'являється,
+    // то зникає, допомагає тільки перезавантаження". Тепер видалення заказів з бази не
+    // відбувається автоматично ніким — код тільки додає те, чого в базі ще немає.
     syncNewLocalItemsToFirestore();
     oneTimeSync20260828();
     unsubProducts = db.collection('products').onSnapshot(function(snap){
@@ -837,6 +846,67 @@
         });
       });
     });
+  }
+
+  // експорт поточної (відфільтрованої за групою) вкладки Склад в Excel — ті самі колонки, що на екрані
+  async function exportWarehouseToExcel(){
+    if(typeof ExcelJS === 'undefined'){
+      alert('Не удалось загрузить модуль Excel — нужен интернет. Попробуйте ещё раз при подключении к сети.');
+      return;
+    }
+    const groupLabels = {stellage:'Стелажка', tso:'ТСО', palletka:'Палетка'};
+    const thinBorder = { top:{style:'thin'}, left:{style:'thin'}, bottom:{style:'thin'}, right:{style:'thin'} };
+    const list = products.filter(function(p){ return p.group === warehouseFilterGroup; });
+
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Склад — ' + (groupLabels[warehouseFilterGroup] || warehouseFilterGroup));
+    const cols = ['Название', 'Артикул', 'Категория', 'На складе', 'В заказах', 'Остаток', 'План на месяц'];
+
+    const headerRow = ws.getRow(1);
+    cols.forEach(function(c, i){ headerRow.getCell(i+1).value = c; });
+    headerRow.eachCell(function(cell){
+      cell.font = { bold:true };
+      cell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFD9D9D9'} };
+      cell.border = thinBorder;
+      cell.alignment = { vertical:'middle', horizontal:'center', wrapText:true };
+    });
+
+    list.forEach(function(p, idx){
+      const inOrders = totalDemandForProduct(p.name);
+      const remaining = p.stock + (p.plan||0) - inOrders;
+      const row = ws.getRow(idx + 2);
+      row.getCell(1).value = p.name;
+      row.getCell(2).value = p.code;
+      row.getCell(3).value = p.category;
+      row.getCell(4).value = p.stock;
+      row.getCell(5).value = inOrders;
+      row.getCell(6).value = remaining;
+      row.getCell(7).value = p.plan || 0;
+      const needsData = !p.verified;
+      for(let c=1; c<=cols.length; c++){
+        const cell = row.getCell(c);
+        cell.border = thinBorder;
+        if(needsData) cell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFFDEAEA'} };
+      }
+    });
+
+    ws.columns = [{width:45},{width:12},{width:18},{width:12},{width:12},{width:12},{width:16}];
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {type:'application/octet-stream'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Склад_' + (groupLabels[warehouseFilterGroup] || warehouseFilterGroup) + '.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  const exportWarehouseBtn = document.getElementById('exportWarehouseBtn');
+  if(exportWarehouseBtn){
+    exportWarehouseBtn.addEventListener('click', function(){ exportWarehouseToExcel(); });
   }
 
   let orders = [
