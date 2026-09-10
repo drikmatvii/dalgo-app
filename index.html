@@ -225,6 +225,7 @@
     <div class="nav-item" data-section="warehouse"><span class="nav-icon">▥</span><span class="nav-label" data-short="Склад">Склад</span></div>
     <div class="nav-item" data-section="analysis"><span class="nav-icon">◈</span><span class="nav-label" data-short="Анализ">Анализ и рекомендации</span></div>
     <div class="nav-item" data-section="planning"><span class="nav-icon">◫</span><span class="nav-label" data-short="План">Прорахунок плану на місяць</span></div>
+    <div class="nav-item" data-section="avgstore"><span class="nav-icon">⊡</span><span class="nav-label" data-short="Магазин">Середній магазин</span></div>
     <div class="nav-item" data-section="shipping"><span class="nav-icon">▧</span><span class="nav-label" data-short="Отгрузки">Отгрузки</span></div>
     <div class="sidebar-footer">
       <div class="user-email" id="currentUserEmail"></div>
@@ -316,6 +317,24 @@
         <table>
           <tr><th>Товар</th><th>Категорія</th><th>На складі</th><th>План на місяць</th></tr>
           <tbody id="planningRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section" id="avgstore">
+      <div class="page-title">Середній магазин</div>
+      <div class="page-sub">Скільки в середньому йде кожного товару на 1 магазин — рахується по всіх заказах у системі, включно з відвантаженими, і оновлюється з кожним новим заказом</div>
+
+      <div class="metric-grid" id="avgStoreStats"></div>
+
+      <div class="part-switcher" id="avgStoreFilter" style="margin-bottom:14px;"></div>
+      <div style="margin-bottom:12px; display:flex; gap:10px;">
+        <button class="btn" id="exportAvgStoreBtn">⭳ Excel</button>
+      </div>
+      <div class="card" style="padding:0;">
+        <table>
+          <tr><th>Товар</th><th>Артикул</th><th>Категорія</th><th>На складі</th><th>Всього по всіх магазинах</th><th>У скількох магазинах є</th><th>Середнє на 1 магазин</th><th>Вистачить на магазинів</th></tr>
+          <tbody id="avgStoreRows"></tbody>
         </table>
       </div>
     </div>
@@ -2059,6 +2078,138 @@
     return products.filter(function(p){ return (p.plan || 0) > 0; });
   }
 
+  // "Середній магазин": скільки в середньому йде кожного товару на 1 магазин, рахується по
+  // АБСОЛЮТНО ВСІХ заказах у системі (на відміну від totalDemandForProduct — тут включаються і
+  // відвантажені заказы теж, бо мета не "скільки ще треба виготовити", а "скільки типово
+  // замовляє один магазин"). Значення живе — перерахунок автоматичний з кожним новим/зміненим
+  // заказом, бо рахується напряму з масиву orders, а не зберігається окремо.
+  function allItemsOfOrder(o){
+    return o.parts ? o.parts.reduce(function(acc,p){ return acc.concat(p.items); }, []) : (o.items || []);
+  }
+
+  function totalDemandAllStores(name){
+    let sum = 0;
+    orders.forEach(function(o){ allItemsOfOrder(o).forEach(function(it){ if(it.name === name) sum += it.qty; }); });
+    return sum;
+  }
+
+  function storeCountForProduct(name){
+    let count = 0;
+    orders.forEach(function(o){ if(allItemsOfOrder(o).some(function(it){ return it.name === name; })) count++; });
+    return count;
+  }
+
+  let avgStoreFilterGroup = 'stellage';
+
+  function renderAvgStoreFilter(){
+    const groups = [{key:'stellage', label:'Стелажка'}, {key:'tso', label:'ТСО'}, {key:'palletka', label:'Палетка'}];
+    const el = document.getElementById('avgStoreFilter');
+    if(!el) return;
+    el.innerHTML = groups.map(function(g){
+      return '<button class="part-btn'+(avgStoreFilterGroup===g.key?' active':'')+'" data-key="'+g.key+'">'+g.label+'</button>';
+    }).join('');
+    el.querySelectorAll('.part-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        avgStoreFilterGroup = btn.dataset.key;
+        renderAvgStoreFilter();
+        renderAvgStore();
+      });
+    });
+  }
+
+  function computeAvgStoreRows(){
+    const totalStores = orders.length;
+    return products.filter(function(p){ return p.group === avgStoreFilterGroup; }).map(function(p){
+      const total = totalDemandAllStores(p.name);
+      const inStores = storeCountForProduct(p.name);
+      const avg = totalStores ? (total / totalStores) : 0;
+      // на скільки середніх магазинів вистачить того, що зараз є на складі (склад / середнє на 1 магазин)
+      const coverage = avg > 0 ? (p.stock / avg) : null;
+      return {name:p.name, code:p.code, category:p.category, stock:p.stock, total:total, inStores:inStores, avg:avg, coverage:coverage};
+    });
+  }
+
+  function renderAvgStore(){
+    const totalStores = orders.length;
+    const shipped = orders.filter(function(o){ return o.statusClass === 'shipped'; }).length;
+    document.getElementById('avgStoreStats').innerHTML =
+      '<div class="metric-card"><div class="metric-label">Магазинів у системі</div><div class="metric-value gray">'+totalStores+'</div></div>'+
+      '<div class="metric-card"><div class="metric-label">У виробництві</div><div class="metric-value blue">'+(totalStores-shipped)+'</div></div>'+
+      '<div class="metric-card"><div class="metric-label">Відвантажено</div><div class="metric-value green">'+shipped+'</div></div>';
+
+    const rows = computeAvgStoreRows();
+    document.getElementById('avgStoreRows').innerHTML = rows.map(function(r){
+      let coverageCell, coverageColor;
+      if(r.coverage === null){
+        coverageCell = '—';
+        coverageColor = 'color:var(--text-2);';
+      } else {
+        coverageCell = r.coverage.toFixed(1);
+        coverageColor = r.coverage < 1 ? 'color:var(--red); font-weight:700;' : (r.coverage < 3 ? 'color:var(--amber); font-weight:600;' : 'color:var(--green);');
+      }
+      return '<tr><td>'+r.name+'</td><td data-label="Артикул">'+r.code+'</td><td data-label="Категорія">'+r.category+'</td>'+
+        '<td data-label="На складі">'+r.stock+'</td>'+
+        '<td data-label="Всього по всіх магазинах">'+r.total+'</td>'+
+        '<td data-label="У скількох магазинах є">'+r.inStores+'</td>'+
+        '<td data-label="Середнє на 1 магазин"><strong>'+r.avg.toFixed(1)+'</strong></td>'+
+        '<td data-label="Вистачить на магазинів" style="'+coverageColor+'">'+coverageCell+'</td></tr>';
+    }).join('');
+  }
+
+  async function exportAvgStoreToExcel(){
+    if(typeof ExcelJS === 'undefined'){
+      alert('Не удалось загрузить модуль Excel — нужен интернет. Попробуйте ещё раз при подключении к сети.');
+      return;
+    }
+    const thinBorder = { top:{style:'thin'}, left:{style:'thin'}, bottom:{style:'thin'}, right:{style:'thin'} };
+    const groupLabels = {stellage:'Стелажка', tso:'ТСО', palletka:'Палетка'};
+    const rows = computeAvgStoreRows();
+
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Середній магазин — ' + (groupLabels[avgStoreFilterGroup] || avgStoreFilterGroup));
+    const cols = ['Товар', 'Артикул', 'Категорія', 'На складі', 'Всього по всіх магазинах', 'У скількох магазинах є', 'Середнє на 1 магазин', 'Вистачить на магазинів'];
+
+    const headerRow = ws.getRow(1);
+    cols.forEach(function(c, i){ headerRow.getCell(i+1).value = c; });
+    headerRow.eachCell(function(cell){
+      cell.font = { bold:true };
+      cell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFD9D9D9'} };
+      cell.border = thinBorder;
+      cell.alignment = { vertical:'middle', horizontal:'center', wrapText:true };
+    });
+
+    rows.forEach(function(r, idx){
+      const row = ws.getRow(idx + 2);
+      row.getCell(1).value = r.name;
+      row.getCell(2).value = r.code;
+      row.getCell(3).value = r.category;
+      row.getCell(4).value = r.stock;
+      row.getCell(5).value = r.total;
+      row.getCell(6).value = r.inStores;
+      row.getCell(7).value = Math.round(r.avg * 10) / 10;
+      row.getCell(8).value = r.coverage === null ? '—' : Math.round(r.coverage * 10) / 10;
+      for(let c=1; c<=cols.length; c++){ row.getCell(c).border = thinBorder; }
+    });
+
+    ws.columns = [{width:60},{width:12},{width:20},{width:14},{width:22},{width:20},{width:20},{width:20}];
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {type:'application/octet-stream'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Середній_магазин_' + (groupLabels[avgStoreFilterGroup] || avgStoreFilterGroup) + '.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  const exportAvgStoreBtn = document.getElementById('exportAvgStoreBtn');
+  if(exportAvgStoreBtn){
+    exportAvgStoreBtn.addEventListener('click', function(){ exportAvgStoreToExcel(); });
+  }
+
   let planningFilterGroup = 'stellage';
 
   function renderPlanningFilter(){
@@ -2221,6 +2372,8 @@
     renderAnalysis();
     renderPlanningFilter();
     renderPlanning();
+    renderAvgStoreFilter();
+    renderAvgStore();
     renderShipping();
     renderDashboard();
     if(currentModalOrder){
