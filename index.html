@@ -656,6 +656,18 @@
     batch.commit().catch(function(err){ console.error('one-time sync 2026-09-10 failed:', err); });
   }
 
+  // ВРЕМЕННО, одноразово: до заказу ПРОДУКТИ-934 (Київ) додано нову частину «Палетка»
+  // (12 позицій, файл «Пр 934 палетные октябрь.xlsx» — той самий об'єкт, що й наявний заказ
+  // Продукти-934). Перезаписує ТІЛЬКИ цей один документ заказу цілком. Уберемо цю функцію
+  // після того, як один раз відпрацює в живому застосунку.
+  function oneTimeSync20260911(){
+    const o = orders.find(function(oo){ return oo.id === 'ПРОДУКТИ-934'; });
+    if(!o) return;
+    const batch = db.batch();
+    batch.set(db.collection('orders').doc('ПРОДУКТИ-934'), o);
+    batch.commit().catch(function(err){ console.error('one-time sync 2026-09-11 failed:', err); });
+  }
+
   function startFirestoreSync(){
     // pushTestUpdate() / cleanupObsoleteItems() / fullProductsRepair() були одноразовими
     // "ремонтними" хелперами: вони на КОЖНОМУ вході перезаписували товари/заказы в базі
@@ -676,6 +688,7 @@
     oneTimeSync20260908();
     oneTimeSync20260908d();
     oneTimeSync20260910();
+    oneTimeSync20260911();
     unsubProducts = db.collection('products').onSnapshot(function(snap){
       products = snap.docs.map(function(d){ return d.data(); }).sort(function(a,b){ return (a.code||'').localeCompare(b.code||''); });
       if(typeof renderAll === 'function') renderAll();
@@ -1448,6 +1461,20 @@
       {name:'Підсилення полиці ТЗ - 1000', qty:10},
       {name:'Підсилення полиці ТЗ - 1250', qty:30},
       {name:'Підсилення полиці ТЗ - 1330', qty:62}
+      ]},
+      {key:'palletka', label:'Палетка', items:[
+      {name:'Розпірка траверса 2700 (7011)', qty:48},
+      {name:'Розпірка траверса 1800 (7011)', qty:20},
+      {name:'Розпірка траверса 900 (7011)', qty:8},
+      {name:'Фіксатор траверси', qty:152},
+      {name:'Полиця стелажа 1800-600 OSB-3 (15) (7011)', qty:4},
+      {name:'Полиця стелажа 900-600 OSB-3 (15) (7011)', qty:4},
+      {name:'Полиця стелажа 2700-800 OSB-3 (15) (7011)', qty:24},
+      {name:'Полиця стелажа 1800-800 OSB-3 (15) (7011)', qty:6},
+      {name:'Перемичка полки під полку 600 (7011)', qty:40},
+      {name:'Перемичка полки під полку 800 (7011)', qty:252},
+      {name:'Рама стелажа палетного 2100 *600', qty:4},
+      {name:'Рама стелажа палетного 2100 *800', qty:15}
       ]}
     ]},
     {id:'ПРОДУКТИ-656', company:'Продукти-656', city:'Гайворон', address:'Кіровоградська обл., м. Гайворон, вул. Центральна, 109', created:'10.09.2026', due:'22.10.2026', statusClass:'production', statusLabel:'В производстве', progress:0, parts:[
