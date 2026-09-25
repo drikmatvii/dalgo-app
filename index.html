@@ -696,6 +696,22 @@
     batch.commit().catch(function(err){ console.error('one-time sync 2026-09-17 failed:', err); });
   }
 
+  // ВРЕМЕННО, одноразово: проставлено фактичний залишок на складі для 8 хлібних позицій
+  // («Короб хлібний» х6, «Полиця хлібна» х2) за документом «Документ1.docx» — усі 8 до цього
+  // мали stock:0 у коді. Пушить ТІЛЬКИ поле stock для цих 8 товарів. Уберемо цю функцію після
+  // того, як один раз відпрацює в живому застосунку.
+  function oneTimeSync20260925(){
+    const STOCK_UPDATES = {
+      "SKU-014": 39, "SKU-015": 25, "SKU-016": 5, "SKU-017": 20, "SKU-018": 10,
+      "SKU-067": 200, "SKU-068": 139, "SKU-244": 5
+    };
+    const batch = db.batch();
+    Object.keys(STOCK_UPDATES).forEach(function(code){
+      batch.update(db.collection('products').doc(code), {stock: STOCK_UPDATES[code]});
+    });
+    batch.commit().catch(function(err){ console.error('one-time sync 2026-09-25 failed:', err); });
+  }
+
   function startFirestoreSync(){
     // pushTestUpdate() / cleanupObsoleteItems() / fullProductsRepair() були одноразовими
     // "ремонтними" хелперами: вони на КОЖНОМУ вході перезаписували товари/заказы в базі
@@ -719,6 +735,7 @@
     oneTimeSync20260911();
     oneTimeSync20260914();
     oneTimeSync20260917();
+    oneTimeSync20260925();
     unsubProducts = db.collection('products').onSnapshot(function(snap){
       products = snap.docs.map(function(d){ return d.data(); }).sort(function(a,b){ return (a.code||'').localeCompare(b.code||''); });
       if(typeof renderAll === 'function') renderAll();
@@ -757,11 +774,11 @@
   {name:'Вставка до хлібного кошика 1000 (7011)', code:'SKU-011', category:'Аксесуари', stock:0, group:'stellage', plan:0, verified:false},
   {name:'Вставка до хлібного кошика 660 (7011)', code:'SKU-012', category:'Аксесуари', stock:0, group:'stellage', plan:0, verified:false},
   {name:'Гачок з цінником 300 (7011)', code:'SKU-013', category:'Аксесуари', stock:0, group:'stellage', plan:0, verified:false},
-  {name:'Короб хлібний 1013х700х508 (7011)', code:'SKU-014', category:'Короби', stock:0, group:'stellage', plan:0, verified:false},
-  {name:'Короб хлібний 1013х800х508 (7011)', code:'SKU-015', category:'Короби', stock:0, group:'stellage', plan:0, verified:false},
-  {name:'Короб хлібний 660х530х508 (7011)', code:'SKU-016', category:'Короби', stock:0, group:'stellage', plan:0, verified:false},
-  {name:'Короб хлібний 660х700х508 (7011)', code:'SKU-017', category:'Короби', stock:0, group:'stellage', plan:0, verified:false},
-  {name:'Короб хлібний 660х800х508 (7011)', code:'SKU-018', category:'Короби', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Короб хлібний 1013х700х508 (7011)', code:'SKU-014', category:'Короби', stock:39, group:'stellage', plan:0, verified:false},
+  {name:'Короб хлібний 1013х800х508 (7011)', code:'SKU-015', category:'Короби', stock:25, group:'stellage', plan:0, verified:false},
+  {name:'Короб хлібний 660х530х508 (7011)', code:'SKU-016', category:'Короби', stock:5, group:'stellage', plan:0, verified:false},
+  {name:'Короб хлібний 660х700х508 (7011)', code:'SKU-017', category:'Короби', stock:20, group:'stellage', plan:0, verified:false},
+  {name:'Короб хлібний 660х800х508 (7011)', code:'SKU-018', category:'Короби', stock:10, group:'stellage', plan:0, verified:false},
   {name:'Кошик сітч 1000 Ral 7011 (розмір 300)', code:'SKU-019', category:'Кошики', stock:0, group:'stellage', plan:0, verified:false},
   {name:'Кошик сітч 1000 Ral 7011 (розмір 700)', code:'SKU-020', category:'Кошики', stock:0, group:'stellage', plan:0, verified:false},
   {name:'Кошик сітч 1000 Ral 7011 (розмір 800)', code:'SKU-021', category:'Кошики', stock:0, group:'stellage', plan:0, verified:false},
@@ -810,8 +827,8 @@
   {name:'Полиця внутр. кута 700 (7011)', code:'SKU-064', category:'Полиці', stock:23, group:'stellage', plan:0, verified:true},
   {name:'Полиця кондитерська 500-1330 7011', code:'SKU-065', category:'Полиці', stock:33, group:'stellage', plan:0, verified:true},
   {name:'Полиця кондитерська 600-1330 7011', code:'SKU-066', category:'Полиці', stock:11, group:'stellage', plan:0, verified:true},
-  {name:'Полиця хлібна 1013х485х407 (7011)', code:'SKU-067', category:'Полиці', stock:0, group:'stellage', plan:0, verified:false},
-  {name:'Полиця хлібна 660х485х407 (7011)', code:'SKU-068', category:'Полиці', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Полиця хлібна 1013х485х407 (7011)', code:'SKU-067', category:'Полиці', stock:200, group:'stellage', plan:0, verified:false},
+  {name:'Полиця хлібна 660х485х407 (7011)', code:'SKU-068', category:'Полиці', stock:139, group:'stellage', plan:0, verified:false},
   {name:'Розподілювач кошика 300 (7011)', code:'SKU-069', category:'Аксесуари', stock:0, group:'stellage', plan:0, verified:false},
   {name:'Розподілювач кошика 700 (7011)', code:'SKU-070', category:'Аксесуари', stock:0, group:'stellage', plan:0, verified:false},
   {name:'Розподілювач кошика 800 (7011)', code:'SKU-071', category:'Аксесуари', stock:0, group:'stellage', plan:0, verified:false},
@@ -871,7 +888,7 @@
   {name:'Полиця під ваги, RAL 7011', code:'SKU-241', category:'ТСО обладнання', stock:0, group:'tso', plan:0, verified:false},
   {name:'Бар\'єр боковини акриловий 400 (7011)', code:'SKU-242', category:'Бар\'єри', stock:0, group:'stellage', plan:0, verified:false},
   {name:'Бар’єр боковий 300 (7011)', code:'SKU-243', category:'Бар\'єри', stock:0, group:'stellage', plan:0, verified:false},
-  {name:'Короб хлібний 1013х530х508 (7011)', code:'SKU-244', category:'Короби', stock:0, group:'stellage', plan:0, verified:false},
+  {name:'Короб хлібний 1013х530х508 (7011)', code:'SKU-244', category:'Короби', stock:5, group:'stellage', plan:0, verified:false},
   {name:'Кошик сітч 1000 Ral 7011 (розмір 500)', code:'SKU-245', category:'Кошики', stock:0, group:'stellage', plan:0, verified:false},
   {name:'Кошик сітч 1250 Ral 7011 (розмір 500)', code:'SKU-246', category:'Кошики', stock:0, group:'stellage', plan:0, verified:false},
   {name:'Кошик сітч 1250 Ral 7011 (розмір 700)', code:'SKU-247', category:'Кошики', stock:0, group:'stellage', plan:0, verified:false},
