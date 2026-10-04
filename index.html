@@ -712,6 +712,83 @@
     batch.commit().catch(function(err){ console.error('one-time sync 2026-09-25 failed:', err); });
   }
 
+  // ВРЕМЕННО, одноразово: заказы ЧЕРКАСИ-1522 (Черкаси), ПРОДУКТИ-1180 (Міжгір'я) і ПРОДУКТИ-1330
+  // (Кам'янка-Бузька) відвантажено. Робить те саме, що кнопка «Відвантажено»: списує зі складу
+  // позиції заказу (атомарно, через increment — живі залишки в базі не перезаписуються) і ставить
+  // статус «Відвантажено». Захист від повторного списання: у документ заказу пишеться прапорець
+  // shipMigration20261004 — якщо він є (або заказ уже відвантажений), заказ пропускається, навіть
+  // якщо його потім «Відновили». Уберемо функцію після того, як один раз відпрацює.
+  function oneTimeShip20261004(){
+    const IDS = ['ЧЕРКАСИ-1522', 'ПРОДУКТИ-1180', 'ПРОДУКТИ-1330'];
+    IDS.forEach(function(id){
+      const ref = db.collection('orders').doc(id);
+      db.runTransaction(function(tx){
+        return tx.get(ref).then(function(snap){
+          if(!snap.exists) return;
+          const o = snap.data();
+          if(o.shipMigration20261004 || o.statusClass === 'shipped') return;
+          const totals = {};
+          (o.parts || []).forEach(function(part){
+            (part.items || []).forEach(function(it){
+              const p = findProduct(it.name);
+              if(p) totals[p.code] = (totals[p.code] || 0) + it.qty;
+            });
+          });
+          Object.keys(totals).forEach(function(code){
+            tx.update(db.collection('products').doc(code), {stock: firebase.firestore.FieldValue.increment(-totals[code])});
+          });
+          tx.update(ref, {statusClass:'shipped', statusLabel:'Відвантажено', shipMigration20261004:true});
+        });
+      }).catch(function(err){ console.error('one-time ship 2026-10-04 failed for ' + id + ':', err); });
+    });
+  }
+
+  // ВРЕМЕННО, одноразово: коректне ВІДВАНТАЖЕННЯ заказів ЧЕРКАСИ-1522, ПРОДУКТИ-1180 (Міжгір'я) і
+  // ПРОДУКТИ-1330 (Кам'янка-Бузька) рівно один раз. Через повторні відвантаження та старі міграції,
+  // що перезаписували заказы й залишки при кожному вході, ці заказы раніше списувались кілька разів.
+  // Тут залишок 75 товарів цих заказів виставляється одразу у правильне значення «до відвантаження
+  // мінус позиції заказів» (звірено: різниця в базі точно дорівнювала кратному списанню), і три
+  // заказы переводяться у «Відвантажено». Позиції ТСО (14 товарів) не чіпаються. Спрацьовує один
+  // раз — прапорець stockShip20261004 у документі заказу ПРОДУКТИ-1330.
+  function oneTimeShipFix20261004(){
+    const TARGET = {
+      "SKU-001": -24, "SKU-007": -348, "SKU-008": -11, "SKU-009": -118,
+      "SKU-010": -87, "SKU-011": -4, "SKU-013": -32, "SKU-014": 36,
+      "SKU-015": 21, "SKU-017": 17, "SKU-021": -2, "SKU-024": -19,
+      "SKU-027": -1, "SKU-029": 5810, "SKU-030": 13116, "SKU-031": 2566,
+      "SKU-032": -6, "SKU-033": 571, "SKU-035": 465, "SKU-036": 22,
+      "SKU-038": 408, "SKU-039": -59, "SKU-040": -2, "SKU-041": -136,
+      "SKU-042": -41, "SKU-043": 23, "SKU-045": 27, "SKU-046": 273,
+      "SKU-047": 49, "SKU-048": 769, "SKU-049": 206, "SKU-050": 513,
+      "SKU-052": 457, "SKU-053": 1536, "SKU-054": 1264, "SKU-055": 237,
+      "SKU-056": 3449, "SKU-057": 1181, "SKU-058": 393, "SKU-059": 89,
+      "SKU-060": 1034, "SKU-061": 267, "SKU-067": 179, "SKU-068": 130,
+      "SKU-071": -65, "SKU-073": 24, "SKU-074": 20, "SKU-075": 643,
+      "SKU-076": 50, "SKU-077": 3350, "SKU-078": 3307, "SKU-079": 17,
+      "SKU-115": -72, "SKU-116": -66, "SKU-117": -7, "SKU-168": -18,
+      "SKU-169": -154, "SKU-170": -58, "SKU-171": -224, "SKU-174": -8,
+      "SKU-175": -9, "SKU-177": -21, "SKU-181": -80, "SKU-182": -531,
+      "SKU-188": -8, "SKU-189": -58, "SKU-191": -8, "SKU-192": -6,
+      "SKU-193": -1, "SKU-194": -3, "SKU-195": -8, "SKU-196": -69,
+      "SKU-216": -14, "SKU-217": -168, "SKU-252": -4
+    };
+    const IDS = ['ЧЕРКАСИ-1522', 'ПРОДУКТИ-1180', 'ПРОДУКТИ-1330'];
+    const flagRef = db.collection('orders').doc('ПРОДУКТИ-1330');
+    db.runTransaction(function(tx){
+      return tx.get(flagRef).then(function(snap){
+        if(!snap.exists) return;
+        if(snap.data().stockShip20261004) return;
+        Object.keys(TARGET).forEach(function(code){
+          tx.update(db.collection('products').doc(code), {stock: TARGET[code]});
+        });
+        IDS.forEach(function(id){
+          tx.update(db.collection('orders').doc(id), {statusClass:'shipped', statusLabel:'Відвантажено'});
+        });
+        tx.update(flagRef, {stockShip20261004: true});
+      });
+    }).catch(function(err){ console.error('one-time ship fix 2026-10-04 failed:', err); });
+  }
+
   function startFirestoreSync(){
     // pushTestUpdate() / cleanupObsoleteItems() / fullProductsRepair() були одноразовими
     // "ремонтними" хелперами: вони на КОЖНОМУ вході перезаписували товари/заказы в базі
@@ -727,15 +804,17 @@
     // то зникає, допомагає тільки перезавантаження". Тепер видалення заказів з бази не
     // відбувається автоматично ніким — код тільки додає те, чого в базі ще немає.
     syncNewLocalItemsToFirestore();
-    oneTimeSync20260828();
-    oneTimeSync20260903();
-    oneTimeSync20260908();
-    oneTimeSync20260908d();
-    oneTimeSync20260910();
-    oneTimeSync20260911();
-    oneTimeSync20260914();
-    oneTimeSync20260917();
-    oneTimeSync20260925();
+    // oneTimeSync20260828(); — ВИМКНЕНО (вже відпрацювала; на кожному вході перезаписувала дані в базі)
+    // oneTimeSync20260903(); — ВИМКНЕНО (вже відпрацювала; на кожному вході перезаписувала дані в базі)
+    // oneTimeSync20260908(); — ВИМКНЕНО (вже відпрацювала; на кожному вході перезаписувала дані в базі)
+    // oneTimeSync20260908d(); — ВИМКНЕНО (вже відпрацювала; на кожному вході перезаписувала дані в базі)
+    // oneTimeSync20260910(); — ВИМКНЕНО (вже відпрацювала; на кожному вході перезаписувала дані в базі)
+    // oneTimeSync20260911(); — ВИМКНЕНО (вже відпрацювала; на кожному вході перезаписувала дані в базі)
+    // oneTimeSync20260914(); — ВИМКНЕНО (вже відпрацювала; на кожному вході перезаписувала дані в базі)
+    // oneTimeSync20260917(); — ВИМКНЕНО (вже відпрацювала; на кожному вході перезаписувала дані в базі)
+    // oneTimeSync20260925(); — ВИМКНЕНО (вже відпрацювала; на кожному вході перезаписувала дані в базі)
+    // oneTimeShip20261004(); — ВИМКНЕНО: відвантаження трьох заказів скасовано за проханням користувача (повертаються кнопкою «Відновити»)
+    oneTimeShipFix20261004();
     unsubProducts = db.collection('products').onSnapshot(function(snap){
       products = snap.docs.map(function(d){ return d.data(); }).sort(function(a,b){ return (a.code||'').localeCompare(b.code||''); });
       if(typeof renderAll === 'function') renderAll();
@@ -1098,7 +1177,7 @@
       {name:'Стінка задня перфорована 450*1330 (7011)', qty:10}
       ]}
     ]},
-    {id:'ЧЕРКАСИ-1522', company:'Продукти-1522', city:'Черкаси', address:'м. Черкаси, вул. Сумгаїтська, 40', created:'05.08.2026', due:'08.09.2026', statusClass:'production', statusLabel:'В производстве', progress:0, parts:[
+    {id:'ЧЕРКАСИ-1522', company:'Продукти-1522', city:'Черкаси', address:'м. Черкаси, вул. Сумгаїтська, 40', created:'05.08.2026', due:'08.09.2026', statusClass:'shipped', statusLabel:'Відвантажено', progress:0, parts:[
       {key:'stellage', label:'Стелажка', items:[
       {name:'Нога одностороння 700 1778-100-1 (7011)', qty:4},
       {name:'Нога одностороння 500 1930-100-1 (7011)', qty:36},
@@ -1385,7 +1464,7 @@
       {name:'Камера схову 5-коміркова 7011 (полікарб)', qty:12}
       ]}
     ]},
-    {id:'ПРОДУКТИ-1180', company:'Продукти-1180', city:'Міжгір\'я', address:'селище Міжгір\'я, вул. Шевченка, 159, корп. 2-Б, приміщення 101', created:'02.09.2026', due:'07.10.2026', statusClass:'production', statusLabel:'В производстве', progress:0, parts:[
+    {id:'ПРОДУКТИ-1180', company:'Продукти-1180', city:'Міжгір\'я', address:'селище Міжгір\'я, вул. Шевченка, 159, корп. 2-Б, приміщення 101', created:'02.09.2026', due:'07.10.2026', statusClass:'shipped', statusLabel:'Відвантажено', progress:0, parts:[
       {key:'stellage', label:'Стелажка', items:[
       {name:'Нога одностороння 400 1930-100-1 (7011)', qty:4},
       {name:'Нога одностороння 500 1930-100-1 (7011)', qty:20},
@@ -1740,7 +1819,7 @@
       {name:'Рама стелажа палетного 2100 *1100', qty:4}
       ]}
     ]},
-    {id:'ПРОДУКТИ-1330', company:'Продукти-1330', city:'Кам\'янка-Бузька', address:'Львівська обл., м. Кам\'янка-Бузька, вул. Тютюнника, 7г', created:'29.09.2026', due:'06.10.2026', statusClass:'production', statusLabel:'В производстве', progress:0, parts:[
+    {id:'ПРОДУКТИ-1330', company:'Продукти-1330', city:'Кам\'янка-Бузька', address:'Львівська обл., м. Кам\'янка-Бузька, вул. Тютюнника, 7г', created:'29.09.2026', due:'06.10.2026', statusClass:'shipped', statusLabel:'Відвантажено', progress:0, parts:[
       {key:'palletka', label:'Палетка', items:[
       {name:'Розпірка траверса 2700 (7011)', qty:6},
       {name:'Розпірка траверса 1800 (7011)', qty:80},
@@ -1789,6 +1868,71 @@
       {name:'Перемичка полки під полку 800 (7011)', qty:396},
       {name:'Рама стелажа палетного 2100 *600', qty:8},
       {name:'Рама стелажа палетного 2100 *800', qty:33}
+      ]}
+    ]},
+    {id:'ПРОДУКТИ-1529', company:'Продукти-1529', city:'Басівка', address:'Львівська обл., село Басівка, Кільцева дорога к.н. 4623682000:04:000:0315', created:'02.10.2026', due:'13.11.2026', statusClass:'production', statusLabel:'В производстве', progress:0, parts:[
+      {key:'stellage', label:'Стелажка', items:[
+      {name:'Нога одностороння 700 1778-100-1 (7011)', qty:5},
+      {name:'Нога одностороння 500 1930-100-1 (7011)', qty:30},
+      {name:'Нога одностороння 800 1930-100-1 (7011)', qty:40},
+      {name:'Нога двостороння 800 1930-100-2 (7011)', qty:29},
+      {name:'Стінка задня 300*1000 (7011)', qty:4},
+      {name:'Стінка задня 450*1000 (7011)', qty:132},
+      {name:'Стінка задня 450*1330 (7011)', qty:220},
+      {name:'Стінка задня 450*660 (7011)', qty:80},
+      {name:'Стінка задня перфорована 300*1330 (7011)', qty:12},
+      {name:'Бар’єр полиці 1000 (7011)', qty:57},
+      {name:'Бар’єр полиці 1330 (7011)', qty:26},
+      {name:'Бар’єр полиці 660 (7011)', qty:64},
+      {name:'Полиця 200-1000 (7011)', qty:4},
+      {name:'Полиця 300-1000 (7011)', qty:30},
+      {name:'Полиця 300-1330 (7011)', qty:51},
+      {name:'Полиця 300-660 (7011)', qty:3},
+      {name:'Полиця 400-1000 (7011)', qty:6},
+      {name:'Полиця 400-1330 (7011)', qty:22},
+      {name:'Полиця 400-660 (7011)', qty:88},
+      {name:'Полиця 500-1000 (7011)', qty:148},
+      {name:'Полиця 500-1330 (7011)', qty:222},
+      {name:'Полиця 500-660 (7011)', qty:32},
+      {name:'Полиця 600-1000 (7011)', qty:29},
+      {name:'Полиця 600-1330 (7011)', qty:46},
+      {name:'Полиця 600-660 (7011)', qty:3},
+      {name:'КЛН ППЛ 400 Перегородка полиці  (7011 глянец)', qty:54},
+      {name:'КЛН ППЛ 500 Перегородка полиці  (7011 глянец)', qty:16},
+      {name:'КЛН ППЛ 600 Перегородка полиці  (7011 глянец)', qty:4},
+      {name:'Гачок з цінником 300 (7011)', qty:40},
+      {name:'Кронштейн універсальний 400 (7011)', qty:220},
+      {name:'Кронштейн універсальний 500 (7011)', qty:544},
+      {name:'Кронштейн універсальний 600 (7011)', qty:162},
+      {name:'Полиця хлібна 1013х485х407 (7011)', qty:12},
+      {name:'Короб хлібний 1013х700х508 (7011)', qty:4},
+      {name:'Бар\'єр акриловий 1330 (7011)', qty:12},
+      {name:'Полиця кондитерська 500-1330 7011', qty:9},
+      {name:'Полиця кондитерська 600-1330 7011', qty:3},
+      {name:'AT PRA 500 200 Перегородка акрилова', qty:63},
+      {name:'AT PRA 600 200 Перегородка акрилова', qty:21},
+      {name:'Кошик сітч 1000 Ral 7011 (розмір 800)', qty:3},
+      {name:'Кошик сітч 1330 Ral 7011 (розмір 800)', qty:10},
+      {name:'Кошик сітч 660 Ral 7011 (розмір 500)', qty:4},
+      {name:'Розподілювач кошика 500 (7011)', qty:8},
+      {name:'Розподілювач кошика 800 (7011)', qty:39},
+      {name:'Підсилення полиці ТЗ - 660', qty:20},
+      {name:'Підсилення полиці ТЗ - 1000', qty:30},
+      {name:'Підсилення полиці ТЗ - 1330', qty:54}
+      ]},
+      {key:'palletka', label:'Палетка', items:[
+      {name:'Розпірка траверса 2700 (7011)', qty:36},
+      {name:'Розпірка траверса 1800 (7011)', qty:58},
+      {name:'Розпірка траверса 900 (7011)', qty:6},
+      {name:'Фіксатор траверси', qty:200},
+      {name:'Полиця стелажа 1800-600 OSB-3 (15) (7011)', qty:8},
+      {name:'Полиця стелажа 2700-800 OSB-3 (15) (7011)', qty:18},
+      {name:'Полиця стелажа 1800-800 OSB-3 (15) (7011)', qty:21},
+      {name:'Полиця стелажа 900-800 OSB-3 (15) (7011)', qty:3},
+      {name:'Перемичка полки під полку 600 (7011)', qty:48},
+      {name:'Перемичка полки під полку 800 (7011)', qty:300},
+      {name:'Рама стелажа палетного 2100 *600', qty:4},
+      {name:'Рама стелажа палетного 2100 *800', qty:23}
       ]}
     ]}
   ];
@@ -1875,7 +2019,7 @@
     Object.keys(deduct).forEach(function(code){
       const p = products.find(function(pp){ return pp.code === code; });
       if(!p) return;
-      batch.update(db.collection('products').doc(code), {stock: p.stock - deduct[code]});
+      batch.update(db.collection('products').doc(code), {stock: firebase.firestore.FieldValue.increment(-deduct[code])});
     });
     batch.update(db.collection('orders').doc(order.id), {statusClass:'shipped', statusLabel:'Відвантажено'});
     batch.commit().then(function(){
@@ -1911,7 +2055,7 @@
     Object.keys(restore).forEach(function(code){
       const p = products.find(function(pp){ return pp.code === code; });
       if(!p) return;
-      batch.update(db.collection('products').doc(code), {stock: p.stock + restore[code]});
+      batch.update(db.collection('products').doc(code), {stock: firebase.firestore.FieldValue.increment(restore[code])});
     });
     batch.update(db.collection('orders').doc(order.id), {statusClass:'production', statusLabel:'В производстве'});
     batch.commit().then(function(){
